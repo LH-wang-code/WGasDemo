@@ -1,0 +1,32 @@
+# IDE 缓存
+.idea/
+.vs/
+*.vsconfig
+*.suo
+*.user
+*.userfilters
+.vscode/
+
+# UE编译缓存（全部忽略，不用上传）
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Content/
+# 打包输出
+Packaged/
+BuildOutput/
+Output/
+
+# 系统垃圾文件
+Thumbs.db
+.DS_Store
+__pycache__/
+*.pyc
+*.log
+*.tmp
+*.bak
+
+# 本地临时文档（按需开启，不想传md/txt就去掉#）
+# *.md
+# *.txt
