@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "Character/WGasCharacterBase.h"
 #include "WGasCharacterEnemy.generated.h"
 
@@ -17,8 +18,11 @@ class WGAS_API AWGasCharacterEnemy : public AWGasCharacterBase
 
 public:
 protected:
+	ECharacterClass CharacterClass=ECharacterClass::Warrior;
+	int32 Level=1;
 	virtual void BeginPlay() override;
 
 	virtual void InitAbilityActorInfo() override;
-	
+	virtual void InitializeDefaultAttributes()const override;
+
 };

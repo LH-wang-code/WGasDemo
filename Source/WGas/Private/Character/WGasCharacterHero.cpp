@@ -7,6 +7,8 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Player/WGasPlayerController.h"
+#include "UI/HUD/WGasHUD.h"
 
 AWGasCharacterHero::AWGasCharacterHero()
 {
@@ -46,4 +48,31 @@ void AWGasCharacterHero::PossessedBy(AController* NewController)
 void AWGasCharacterHero::InitAbilityActorInfo()
 {
 	Super::InitAbilityActorInfo();
+
+	AWGasPlayerController* PC=Cast<AWGasPlayerController>(GetController());
+	if (!PC)return;
+	auto InitHUD=[this,PC]()
+	{
+		if (AWGasHUD* WGasHUD=Cast<AWGasHUD>(PC->GetHUD()))
+		{
+			WGasHUD->InitOverlay(PC,AbilitySystemComponent,AttributeSet);
+			
+		}
+	};
+
+	if (AWGasHUD* WGasHUD=Cast<AWGasHUD>(PC->GetHUD()))
+	{
+		InitHUD();
+	}
+	else
+	{
+		FTimerHandle Handle;
+		GetWorldTimerManager().SetTimer(
+			Handle,
+			InitHUD,
+			0.0f,   
+			false
+		);
+	}
+	InitializeDefaultAttributes();
 }

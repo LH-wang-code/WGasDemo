@@ -14,6 +14,16 @@ public:
 	static const FWGasGameplayTags& Get(){return GameplayTags;}
 	static void InitializeNativeGameplayTags();
 
+	/*AttributeSet*/
+	FGameplayTag Attribute_Vital_MaxHealth;
+	FGameplayTag Attribute_Vital_MaxMana;
+	FGameplayTag Attribute_Vital_MaxPoise;
+	FGameplayTag Attribute_Vital_MaxStamina;
+	
+	
+	
+
+
 
 	/*InputTag*/
 	FGameplayTag InputTag_LMB;

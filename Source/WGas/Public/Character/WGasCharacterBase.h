@@ -31,12 +31,21 @@ protected:
 	virtual void InitAbilityActorInfo();
 	void AddCharacterAbilities();
 
+	virtual void InitializeDefaultAttributes()const;
+	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect>GameplayEffectClass,float Level)const;
+	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent>AbilitySystemComponent;
 
 
 	UPROPERTY()
 	TObjectPtr<UAttributeSet>AttributeSet;
+
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Attributes")
+	TSubclassOf<UGameplayEffect>DefaultVitalAttributes;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Attributes")
+	TSubclassOf<UGameplayEffect>DefaultSecondaryAttributes;
 
 
 	
@@ -58,6 +67,8 @@ protected:
 	UPROPERTY(EditAnywhere,Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>>StartupAbilities;	
 
+
+	
 private:
 	bool bStartupAbilitiesGiven = false;
 };

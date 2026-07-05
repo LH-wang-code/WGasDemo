@@ -7,6 +7,16 @@ FWGasGameplayTags FWGasGameplayTags::GameplayTags;
 void FWGasGameplayTags::InitializeNativeGameplayTags()
 {
 
+	GameplayTags.Attribute_Vital_MaxHealth=UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attribute.Vital.MaxHealth"),FString("Attribute.Vital.MaxHealth"));
+	GameplayTags.Attribute_Vital_MaxMana=UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attribute.Vital.MaxMana"),FString("Attribute.Vital.MaxMana"));
+	GameplayTags.Attribute_Vital_MaxPoise=UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attribute.Vital.MaxPoise"),FString("Attribute.Vital.MaxPoise"));
+	GameplayTags.Attribute_Vital_MaxStamina=UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attribute.Vital.MaxStamina"),FString("Attribute.Vital.MaxStamina"));
+
+	
 	GameplayTags.InputTag_LMB=UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("InputTag.LMB"),FString("Input Tag For Left Mouse Button"));
 	GameplayTags.InputTag_RMB = UGameplayTagsManager::Get().AddNativeGameplayTag(

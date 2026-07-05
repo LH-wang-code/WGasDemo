@@ -5,10 +5,17 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
+#include "WGasGameplayTags.h"
 #include "GameFramework/Character.h"
 
 UWGasAttributeSet::UWGasAttributeSet()
 {
+	const FWGasGameplayTags& GameplayTags = FWGasGameplayTags::Get();
+	TagsToAttributes.Add(GameplayTags.Attribute_Vital_MaxHealth,GetMaxHealthAttribute);
+	TagsToAttributes.Add(GameplayTags.Attribute_Vital_MaxMana,GetMaxManaAttribute);
+	TagsToAttributes.Add(GameplayTags.Attribute_Vital_MaxPoise,GetMaxPoiseAttribute);
+	TagsToAttributes.Add(GameplayTags.Attribute_Vital_MaxStamina,GetMaxStaminaAttribute);
+	
 }
 //改属性前处理
 void UWGasAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
