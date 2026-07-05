@@ -22,7 +22,7 @@ public:
 	
 	
 	
-
+	
 
 
 	/*InputTag*/
@@ -34,6 +34,10 @@ public:
 	FGameplayTag InputTag_4;
 	FGameplayTag InputTag_Ctrl;
 
+	//Damage
+
+	FGameplayTag Abilities_Attack_Melee;
+	FGameplayTag Abilities_Dodge;
 	/*State*/
 	FGameplayTag State_Attacking_Lighting;
 	FGameplayTag State_Dodge;

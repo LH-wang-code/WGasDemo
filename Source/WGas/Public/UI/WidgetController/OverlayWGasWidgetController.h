@@ -10,9 +10,6 @@
  * 
  */
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature,float,NewValue);
-
-
 UCLASS(BlueprintType,Blueprintable)
 class WGAS_API UOverlayWGasWidgetController : public UWGasWidgetController
 {

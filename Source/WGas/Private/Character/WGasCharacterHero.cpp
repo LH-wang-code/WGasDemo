@@ -28,13 +28,29 @@ AWGasCharacterHero::AWGasCharacterHero()
 
 
 	InputBufferComponent = CreateDefaultSubobject<UGasInputBufferComponent>("InputBufferComponent");
-	// 角色 Yaw 跟随相机，S 键才能后退平移而不是转身
-	bUseControllerRotationYaw = true;
+	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 
 	UCharacterMovementComponent* Movement = GetCharacterMovement();
 	Movement->bOrientRotationToMovement = false;
+	Movement->bUseControllerDesiredRotation = false;
+
+	ApplyMovementSpeed();
+}
+
+void AWGasCharacterHero::ToggleWalkRun()
+{
+	bIsRunning = !bIsRunning;
+	ApplyMovementSpeed();
+}
+
+void AWGasCharacterHero::ApplyMovementSpeed()
+{
+	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+	{
+		Movement->MaxWalkSpeed = bIsRunning ? RunSpeed : WalkSpeed;
+	}
 }
 
 void AWGasCharacterHero::PossessedBy(AController* NewController)

@@ -26,7 +26,22 @@ public:
 	
 	UFUNCTION(BlueprintPure,Category="Input")
 	UGasInputBufferComponent*GetWGasInputBufferComponent()const {return InputBufferComponent;}
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void ToggleWalkRun();
+
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	bool IsRunning() const { return bIsRunning; }
+
 protected:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float WalkSpeed = 200.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	float RunSpeed = 600.f;
+
+	void ApplyMovementSpeed();
 
 	TObjectPtr<UGasInputBufferComponent>InputBufferComponent;
 	
@@ -41,6 +56,7 @@ private:
 	TObjectPtr<USpringArmComponent>SpringArmComponent;
 
 
-private:
+	bool bIsRunning = true;
+
 	virtual void InitAbilityActorInfo() override;
 };

@@ -11,6 +11,8 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature,float,NewValue);
+
 class UWGasAttributeSet;
 USTRUCT(BlueprintType)
 struct  FWidgetControllerParams

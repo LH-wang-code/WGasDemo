@@ -3,8 +3,10 @@
 
 #include "Character/WGasCharacterBase.h"
 
+#include "WGasGameplayTags.h"
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
 #include "AbilitySystem/WGasAttributeSet.h"
+#include "AbilitySystem/Abilities/WGasDamageGameplayAbility.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UObject/FastReferenceCollector.h"
 
@@ -84,4 +86,102 @@ void AWGasCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> Gameplay
 	
 	const FGameplayEffectSpecHandle SpecHandle=GetAbilitySystemComponent()->MakeOutgoingSpec(GameplayEffectClass,Level,ContextHandle);
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
+}
+
+void AWGasCharacterBase::BeginWeaponSweep()
+{
+	if (USkeletalMeshComponent* TraceMesh=GetWeaponTraceMesh())
+	{
+		LastWeaponTipPos=TraceMesh->GetSocketLocation(WeaponTipSocket);
+		LastWeaponBasePos=TraceMesh->GetSocketLocation(WeaponBaseSocket);
+	}
+	MeleeHitActorsThisSwing.Empty();
+	bWeaponSweepActive = true;
+}
+
+void AWGasCharacterBase::TickWeaponSweep()
+{
+	if (!bWeaponSweepActive) return;
+	USkeletalMeshComponent* TraceMesh = GetWeaponTraceMesh();
+	if (!TraceMesh
+	|| !TraceMesh->DoesSocketExist(WeaponBaseSocket)
+	|| !TraceMesh->DoesSocketExist(WeaponTipSocket))
+	{
+		return;
+	}
+	const int32 SampleCount = FMath::Max(WeaponSweepSampleCount, 1);
+	const FVector CurrentBase = TraceMesh->GetSocketLocation(WeaponBaseSocket);
+	const FVector CurrentTip  = TraceMesh->GetSocketLocation(WeaponTipSocket);
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(WeaponSweep), false, this);
+	Params.AddIgnoredActor(this);
+
+	for (int32 i = 0; i <= SampleCount; i++)
+	{
+		const float Alpha = static_cast<float>(i) / static_cast<float>(SampleCount);
+		const FVector LastPos     = FMath::Lerp(LastWeaponBasePos, LastWeaponTipPos, Alpha);
+		const FVector CurrentPos  = FMath::Lerp(CurrentBase, CurrentTip, Alpha);
+		if (LastPos.Equals(CurrentPos, KINDA_SMALL_NUMBER))
+		{
+			continue;
+		}
+		FHitResult Hit;
+		const bool bHit = GetWorld()->SweepSingleByChannel(
+			Hit,
+			LastPos,
+			CurrentPos,
+			FQuat::Identity,
+			ECC_Pawn,
+			FCollisionShape::MakeSphere(WeaponSweepRadius),
+			Params);
+		DrawDebugLine(GetWorld(), LastPos, CurrentPos, FColor::Red, false, 0.5f, 0, 2.f);
+		DrawDebugSphere(GetWorld(), CurrentPos, WeaponSweepRadius, 8, FColor::Yellow, false, 0.5f);
+		if (bHit && Hit.GetActor())
+		{
+			if (!Cast<APawn>(Hit.GetActor()))
+			{
+				continue;
+			}
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1, 2.f, FColor::Green,
+					FString::Printf(TEXT("Hit: %s"), *Hit.GetActor()->GetName()));
+			}
+			ApplyMeleeDamageToActor(Hit.GetActor());
+		}
+	}
+	LastWeaponBasePos = CurrentBase;
+	LastWeaponTipPos  = CurrentTip;
+}
+
+void AWGasCharacterBase::EndWeaponSweep()
+{
+	bWeaponSweepActive = false;
+	MeleeHitActorsThisSwing.Empty();
+}
+
+USkeletalMeshComponent* AWGasCharacterBase::GetWeaponTraceMesh() const
+{
+	return Weapon;
+}
+
+void AWGasCharacterBase::ApplyMeleeDamageToActor(AActor* HitActor)
+{
+	if (!HitActor||MeleeHitActorsThisSwing.Contains(HitActor))return;
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC) return;
+	const FGameplayTag MeleeLightTag = FWGasGameplayTags::Get().Abilities_Attack_Melee;
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (!Spec.IsActive() || !Spec.Ability) continue;
+		// GA CDO 上的 Ability Tags
+		if (!Spec.Ability->GetAssetTags().HasTagExact(MeleeLightTag)) continue;
+		UWGasDamageGameplayAbility* DamageGA =
+			Cast<UWGasDamageGameplayAbility>(Spec.GetPrimaryInstance());
+		if (!DamageGA) continue;
+		DamageGA->CauseDamage(HitActor, DamageGA->GetCurrentDamage());
+		MeleeHitActorsThisSwing.Add(HitActor);
+		return;
+	}
 }

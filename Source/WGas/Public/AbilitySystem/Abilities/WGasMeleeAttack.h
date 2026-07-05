@@ -7,6 +7,7 @@
 
 
 #include "CoreMinimal.h"
+#include "WGasDamageGameplayAbility.h"
 
 #include "AbilitySystem/Abilities/WGasGameplayAbility.h"
 
@@ -22,7 +23,7 @@ class UAnimMontage;
 
 UCLASS(Blueprintable)
 
-class WGAS_API UWGasMeleeAttack : public UWGasGameplayAbility
+class WGAS_API UWGasMeleeAttack : public UWGasDamageGameplayAbility
 
 {
 
@@ -54,20 +55,19 @@ protected:
 
 	FGameplayTag AttackingStateTag;
 
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|Damage")
+	TArray<float>AttackingDamage;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Melee|Damage")
+	int32 ComboIdx=0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|Movement")
 
 	bool bStopMovementOnAttack = true;
-
-
-
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|Hit")
 
 	float MeleeTraceDistance = 150.f;
-
-
-
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|Hit")
 
 	float MeleeTraceRadius = 40.f;

@@ -3,10 +3,12 @@
 
 #include "AbilitySystem/WGasAbilitySystemFunctionLibrary.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "Game/WGasGamemode.h"
 #include "Kismet/GameplayStatics.h"
+#include "WGasEffectTypes.h"
 
 UCharacterClassInfo* UWGasAbilitySystemFunctionLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
 {
@@ -34,4 +36,19 @@ void UWGasAbilitySystemFunctionLibrary::InitializeDefaultCharacterClassInfo(cons
 	VitalEffectContextHandle.AddSourceObject(AvatarActor);
 	FGameplayEffectSpecHandle VitalEffectSpecHandle = ASC->MakeOutgoingSpec(CharacterClassInfo->VitalAttributes, level, VitalEffectContextHandle);
 	ASC->ApplyGameplayEffectSpecToSelf(*VitalEffectSpecHandle.Data.Get());
+}
+
+void UWGasAbilitySystemFunctionLibrary::ApplyDamageEffectParams(const FDamageEffectParams& Params)
+{
+	if (!Params.DamageGameplayEffectClass|| !Params.SourceAbilitySystemComponent|| !Params.TargetAbilitySystemComponent)
+	{
+		return;
+	}
+
+	FGameplayEffectSpecHandle SpecHandle =Params.SourceAbilitySystemComponent->MakeOutgoingSpec(Params.DamageGameplayEffectClass, 1.f,Params.SourceAbilitySystemComponent->MakeEffectContext());
+
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
+		SpecHandle, Params.DamageType, Params.BaseDamage);
+	Params.SourceAbilitySystemComponent->ApplyGameplayEffectSpecToTarget(
+		*SpecHandle.Data.Get(), Params.TargetAbilitySystemComponent);
 }

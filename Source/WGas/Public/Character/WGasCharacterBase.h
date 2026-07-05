@@ -36,12 +36,11 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent>AbilitySystemComponent;
-
-
+	
 	UPROPERTY()
 	TObjectPtr<UAttributeSet>AttributeSet;
 
-	
+	//基础属性以及他们的最大值
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Attributes")
 	TSubclassOf<UGameplayEffect>DefaultVitalAttributes;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Attributes")
@@ -51,7 +50,22 @@ protected:
 	
 public:	
 
-
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace")
+	FName WeaponTipSocket = TEXT("Weapon_Tip");
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace")
+	FName WeaponBaseSocket = TEXT("Weapon_Base");
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace")
+	float WeaponSweepRadius = 25.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace", meta = (ClampMin = "1", ClampMax = "16"))
+	int32 WeaponSweepSampleCount = 10;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace")
+	TSubclassOf<UGameplayEffect> MeleeDamageEffect;
+	UFUNCTION(BlueprintCallable, Category = "Combat|WeaponTrace")
+	void BeginWeaponSweep();
+	UFUNCTION(BlueprintCallable, Category = "Combat|WeaponTrace")
+	void TickWeaponSweep();
+	UFUNCTION(BlueprintCallable, Category = "Combat|WeaponTrace")
+	void EndWeaponSweep();
 
 
 
@@ -67,8 +81,16 @@ protected:
 	UPROPERTY(EditAnywhere,Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>>StartupAbilities;	
 
-
+	USkeletalMeshComponent* GetWeaponTraceMesh() const;
 	
 private:
 	bool bStartupAbilitiesGiven = false;
+
+
+	FVector LastWeaponTipPos = FVector::ZeroVector;
+	FVector LastWeaponBasePos = FVector::ZeroVector;
+
+	bool bWeaponSweepActive = false;
+	TSet<TWeakObjectPtr<AActor>> MeleeHitActorsThisSwing;
+	void ApplyMeleeDamageToActor(AActor* HitActor);
 };

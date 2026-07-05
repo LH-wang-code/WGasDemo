@@ -1,7 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Player/WGasPlayerController.h"
+
+#include "Character/WGasCharacterHero.h"
+#include "Character/WGasCharacterBase.h"
 #include "EnhancedInputSubsystems.h"
 #include "Input/WGasInputComponent.h"
 #include "GameFramework/Pawn.h"
@@ -10,9 +10,13 @@
 #include "Engine/GameViewportClient.h"
 #include "TimerManager.h"
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
+#include "AbilitySystem/WGasAttributeSet.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "WGasGameplayTags.h"
+#include "UI/Widgets/StaminaBarComponent.h"
+#include "UI/Widgets/WGasStaminaBarWidget.h"
+#include "UI/WidgetController/StaminaBarWGasWidgetController.h"
 
 struct FGameplayAbilitySpec;
 
@@ -94,7 +98,6 @@ void AWGasPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	//我们自己创建了一个enhanceinput，强转之前需要在defaultinput.ini重新设置
 	UWGasInputComponent* WGasInputComponent = Cast<UWGasInputComponent>(InputComponent);
 	if (!WGasInputComponent)
 	{
@@ -116,6 +119,12 @@ void AWGasPlayerController::SetupInputComponent()
 		WGasInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AWGasPlayerController::Jump);
 		WGasInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AWGasPlayerController::StopJumping);
 	}
+
+	if (ToggleWalkRunAction)
+	{
+		WGasInputComponent->BindAction(ToggleWalkRunAction, ETriggerEvent::Started, this, &AWGasPlayerController::ToggleWalkRun);
+	}
+
 	if (InputConfig)
 	{
 		WGasInputComponent->BindAbilityActions(
@@ -131,8 +140,82 @@ void AWGasPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 	WGasASC = nullptr;
+
+	if (IsLocalPlayerController())
+	{
+		SetupStaminaBar(InPawn);
+	}
 }
-//控制前后左右
+
+void AWGasPlayerController::OnUnPossess()
+{
+	TeardownStaminaBar();
+	Super::OnUnPossess();
+}
+
+void AWGasPlayerController::SetupStaminaBar(APawn* InPawn)
+{
+	TeardownStaminaBar();
+
+	if (!InPawn || !StaminaBarComponentClass || !StaminaBarWidgetClass || !StaminaWidgetControllerClass)
+	{
+		return;
+	}
+
+	StaminaBarComponentInstance = NewObject<UStaminaBarComponent>(InPawn, StaminaBarComponentClass);
+	StaminaBarComponentInstance->SetWidgetClass(StaminaBarWidgetClass);
+	StaminaBarComponentInstance->SetupAttachment(InPawn->GetRootComponent());
+	StaminaBarComponentInstance->SetRelativeLocation(StaminaBarRelativeLocation);
+	StaminaBarComponentInstance->RegisterComponent();
+	StaminaBarComponentInstance->InitWidget();
+
+	GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]()
+	{
+		BindStaminaBar();
+	}));
+}
+
+void AWGasPlayerController::BindStaminaBar()
+{
+	UWGasAbilitySystemComponent* ASC = GetASC();
+	if (!ASC || !StaminaBarComponentInstance || !StaminaWidgetControllerClass)
+	{
+		return;
+	}
+
+	UWGasAttributeSet* AttributeSet = nullptr;
+	if (const AWGasCharacterBase* GasCharacter = Cast<AWGasCharacterBase>(GetPawn()))
+	{
+		AttributeSet = Cast<UWGasAttributeSet>(GasCharacter->GetAttributeSet());
+	}
+	if (!AttributeSet)
+	{
+		return;
+	}
+
+	StaminaWidgetController = NewObject<UStaminaBarWGasWidgetController>(this, StaminaWidgetControllerClass);
+	const FWidgetControllerParams WidgetParams(this, ASC, AttributeSet);
+	StaminaWidgetController->SetWidgetControllerParams(WidgetParams);
+	StaminaWidgetController->BindCallbacksToDependencies();
+
+	if (UWGasStaminaBarWidget* StaminaWidget = Cast<UWGasStaminaBarWidget>(StaminaBarComponentInstance->GetWidget()))
+	{
+		StaminaWidget->SetWidgetController(StaminaWidgetController);
+		StaminaWidgetController->BroadcastInitialValues();
+	}
+}
+
+void AWGasPlayerController::TeardownStaminaBar()
+{
+	StaminaWidgetController = nullptr;
+
+	if (StaminaBarComponentInstance)
+	{
+		StaminaBarComponentInstance->DestroyComponent();
+		StaminaBarComponentInstance = nullptr;
+	}
+}
+
 void AWGasPlayerController::Move(const FInputActionValue& InputActionValue)
 {
 	if (UWGasAbilitySystemComponent* ASC = GetASC())
@@ -144,17 +227,28 @@ void AWGasPlayerController::Move(const FInputActionValue& InputActionValue)
 			return;
 		}
 	}
-	const FVector2D InputAxisVector=InputActionValue.Get<FVector2D>();
-	const FRotator Rotation=GetControlRotation();
+	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
+	const FRotator Rotation = GetControlRotation();
 	const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
 
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	if (APawn* ControlledPawn = GetPawn())
+	if (ACharacter* GASCharacter = Cast<ACharacter>(GetPawn()))
 	{
-		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
-		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
+		if (InputAxisVector.Y > KINDA_SMALL_NUMBER)
+		{
+			const FRotator TargetRotation(0.f, Rotation.Yaw, 0.f);
+			const FRotator NewRotation = FMath::RInterpConstantTo(
+				GASCharacter->GetActorRotation(),
+				TargetRotation,
+				GetWorld()->GetDeltaSeconds(),
+				720.f);
+			GASCharacter->SetActorRotation(NewRotation);
+		}
+
+		GASCharacter->AddMovementInput(ForwardDirection, InputAxisVector.Y);
+		GASCharacter->AddMovementInput(RightDirection, InputAxisVector.X);
 	}
 }
 
@@ -194,12 +288,20 @@ void AWGasPlayerController::StopJumping(const FInputActionValue& InputActionValu
 		ControlledCharacter->StopJumping();
 	}
 }
-//playercontroller存一个
+
+void AWGasPlayerController::ToggleWalkRun(const FInputActionValue& InputActionValue)
+{
+	if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetPawn()))
+	{
+		Hero->ToggleWalkRun();
+	}
+}
+
 UWGasAbilitySystemComponent* AWGasPlayerController::GetASC()
 {
 	if (WGasASC == nullptr)
 	{
-		WGasASC=Cast<UWGasAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn()));
+		WGasASC = Cast<UWGasAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn()));
 	}
 	return WGasASC;
 }

@@ -33,6 +33,12 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 	FName("InputTag.Ctrl"), FString("Input Tag For Key Ctrl"));  
 
 
+	GameplayTags.Abilities_Attack_Melee = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Abilities.Attack.Melee"), FString("Abilities.Attack.Melee"));
+	GameplayTags.Abilities_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Dodge"), FString("Abilities.Dodge"));
+
+
 	GameplayTags.State_Attacking_Lighting = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("State.Attacking.Lighting"), FString("State.Attacking.Lighting"));  
 	GameplayTags.State_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(

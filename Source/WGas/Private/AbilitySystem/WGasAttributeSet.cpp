@@ -51,7 +51,9 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	SetEffectProperties(Data,Props);
 
 	//TODO:判断作用的角色是否死亡
-
+	UE_LOG(LogTemp, Warning, TEXT("PostExecute Attribute: %s  Magnitude: %.1f"),
+		 *Data.EvaluatedData.Attribute.GetName(),
+		 Data.EvaluatedData.Magnitude);
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		//GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Red, FString::Printf(TEXT("Health: %f"), GetHealth()));
@@ -69,13 +71,24 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	}
 	if (Data.EvaluatedData.Attribute==GetStaminaAttribute())
 	{
-		SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetStamina()));
+		SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
 	}
 
 	
 	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
 		//TODO:处理伤害
+		const float Damage=GetIncomingDamage();
+		SetIncomingDamage(0.f);
+		const float NewHealth = GetHealth() - Damage;
+		SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
+				FString::Printf(TEXT("[%s] Took %.0f! HP %.0f -> %.0f"),
+					*GetOwningActor()->GetName(),
+					Damage, GetHealth() + Damage, GetHealth()));
+		}
 	}
 }
 
