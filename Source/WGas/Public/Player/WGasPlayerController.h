@@ -32,11 +32,13 @@ protected:
 
 private:
 	void Move(const FInputActionValue& InputActionValue);
+	void StopMove(const FInputActionValue&InputActionValue);
+	
 	void Look(const FInputActionValue& InputActionValue);
 	void Jump(const FInputActionValue& InputActionValue);
 	void StopJumping(const FInputActionValue& InputActionValue);
 	void ToggleWalkRun(const FInputActionValue& InputActionValue);
-
+	void ToggleLockOnInput(const FInputActionValue&InputActionValue);
 	UWGasAbilitySystemComponent* GetASC();
 
 	void SetupStaminaBar(APawn* InPawn);
@@ -56,6 +58,8 @@ private:
 	TObjectPtr<UInputAction> JumpAction;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> ToggleWalkRunAction;
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> ToggleLockOnAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UWGasInputConfig> InputConfig;
@@ -70,7 +74,7 @@ private:
 	TSubclassOf<UStaminaBarWGasWidgetController> StaminaWidgetControllerClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI|Stamina")
-	FVector StaminaBarRelativeLocation = FVector(0.f, 0.f, -90.f);
+	FVector StaminaBarRelativeLocation = FVector(0.f, 40.f, -20.f);
 
 	UPROPERTY()
 	TObjectPtr<UStaminaBarComponent> StaminaBarComponentInstance;

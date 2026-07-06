@@ -11,7 +11,7 @@
  */
 
 
-UCLASS()
+UCLASS(BlueprintType,Blueprintable)
 class WGAS_API UStaminaBarWGasWidgetController : public UWGasWidgetController
 {
 	GENERATED_BODY()

@@ -15,6 +15,7 @@ class UCameraComponent;
  
 class USpringArmComponent;
 class UGasInputBufferComponent;
+class UWGasLockOnComponent;
 UCLASS()
 class WGAS_API AWGasCharacterHero : public AWGasCharacterBase
 {
@@ -26,13 +27,16 @@ public:
 	
 	UFUNCTION(BlueprintPure,Category="Input")
 	UGasInputBufferComponent*GetWGasInputBufferComponent()const {return InputBufferComponent;}
-
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void ToggleWalkRun();
 
 	UFUNCTION(BlueprintPure, Category = "Movement")
 	bool IsRunning() const { return bIsRunning; }
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	void ForceWalk();
 
+	void UpdateRunningTag(const FVector2D& MoveInput);
+	void ClearRunningTag();
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
@@ -45,18 +49,22 @@ protected:
 
 	TObjectPtr<UGasInputBufferComponent>InputBufferComponent;
 	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> StaminaCostGE;
 	
 	
 private:
-
+	void BindStaminaDepletedDelegate();
+	bool bStaminaDepletedBound = false;
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCameraComponent>CameraComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent>SpringArmComponent;
-
-
-	bool bIsRunning = true;
-
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UWGasLockOnComponent>LockOnComponent;
+	
+	bool bIsRunning = false;
+	bool bRunStaminaEffectsApplied = false;
 	virtual void InitAbilityActorInfo() override;
 };

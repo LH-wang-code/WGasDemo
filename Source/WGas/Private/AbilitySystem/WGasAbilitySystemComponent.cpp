@@ -22,7 +22,17 @@ void UWGasAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 			GiveAbility(AbilitySpec);
 		}
 	}
-	
+}
+
+void UWGasAbilitySystemComponent::AddCharacterPassiveAbilities(
+	const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities)
+{
+	for (const TSubclassOf<UGameplayAbility>& AbilityClass : StartupPassiveAbilities)
+	{
+		if (!AbilityClass) continue;
+		FGameplayAbilitySpec AbilitySpec(AbilityClass, 1);
+		GiveAbility(AbilitySpec);   
+	}
 }
 
 void UWGasAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)

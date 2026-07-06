@@ -53,7 +53,7 @@ struct FEffectProperties
 
 template<class T>
 using TStaticFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateUserPolicy>::FFuncPtr;
-
+DECLARE_MULTICAST_DELEGATE(FOnStaminaDepleted);
 
 UCLASS()
 class WGAS_API UWGasAttributeSet : public UAttributeSet
@@ -63,6 +63,8 @@ class WGAS_API UWGasAttributeSet : public UAttributeSet
 public:
 	UWGasAttributeSet();
 
+	FOnStaminaDepleted OnStaminaDepleted;
+	
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)override;
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)override;

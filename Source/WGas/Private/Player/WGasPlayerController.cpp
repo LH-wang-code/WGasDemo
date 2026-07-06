@@ -14,6 +14,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "WGasGameplayTags.h"
+#include "Character/WGasLockOnComponent.h"
 #include "UI/Widgets/StaminaBarComponent.h"
 #include "UI/Widgets/WGasStaminaBarWidget.h"
 #include "UI/WidgetController/StaminaBarWGasWidgetController.h"
@@ -107,6 +108,8 @@ void AWGasPlayerController::SetupInputComponent()
 	if (MoveAction)
 	{
 		WGasInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AWGasPlayerController::Move);
+		WGasInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AWGasPlayerController::StopMove);
+		WGasInputComponent->BindAction(MoveAction, ETriggerEvent::Canceled, this, &AWGasPlayerController::StopMove);
 	}
 
 	if (LookAction)
@@ -125,6 +128,11 @@ void AWGasPlayerController::SetupInputComponent()
 		WGasInputComponent->BindAction(ToggleWalkRunAction, ETriggerEvent::Started, this, &AWGasPlayerController::ToggleWalkRun);
 	}
 
+	if (ToggleLockOnAction)
+	{
+		WGasInputComponent->BindAction(ToggleLockOnAction, ETriggerEvent::Started, this, &AWGasPlayerController::ToggleLockOnInput);
+		
+	}
 	if (InputConfig)
 	{
 		WGasInputComponent->BindAbilityActions(
@@ -250,6 +258,18 @@ void AWGasPlayerController::Move(const FInputActionValue& InputActionValue)
 		GASCharacter->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		GASCharacter->AddMovementInput(RightDirection, InputAxisVector.X);
 	}
+	if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetPawn()))
+	{
+		Hero->UpdateRunningTag(InputAxisVector);
+	}
+}
+
+void AWGasPlayerController::StopMove(const FInputActionValue& InputActionValue)
+{
+	if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetPawn()))
+	{
+		Hero->ClearRunningTag();  
+	}
 }
 
 void AWGasPlayerController::Look(const FInputActionValue& InputActionValue)
@@ -294,6 +314,17 @@ void AWGasPlayerController::ToggleWalkRun(const FInputActionValue& InputActionVa
 	if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetPawn()))
 	{
 		Hero->ToggleWalkRun();
+	}
+}
+
+void AWGasPlayerController::ToggleLockOnInput(const FInputActionValue& InputActionValue)
+{
+	if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetPawn()))
+	{
+		if (UWGasLockOnComponent* LockOn = Hero->FindComponentByClass<UWGasLockOnComponent>())
+		{
+			LockOn->ToggleLockOn();
+		}
 	}
 }
 

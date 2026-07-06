@@ -3,6 +3,16 @@
 #include "Components/ProgressBar.h"
 #include "UI/WidgetController/StaminaBarWGasWidgetController.h"
 
+void UWGasStaminaBarWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (StaminaBar)
+	{
+		StaminaBar->SetBarFillType(EProgressBarFillType::BottomToTop);
+	}
+}
+
 void UWGasStaminaBarWidget::SetWidgetController(UObject* InWidgetController)
 {
 	Super::SetWidgetController(InWidgetController);

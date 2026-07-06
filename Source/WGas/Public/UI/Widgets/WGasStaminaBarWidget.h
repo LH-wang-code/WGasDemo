@@ -12,6 +12,7 @@ class WGAS_API UWGasStaminaBarWidget : public UWGasUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativeConstruct() override;
 	virtual void SetWidgetController(UObject* InWidgetController) override;
 
 	UFUNCTION(BlueprintCallable, Category = "StaminaBar")

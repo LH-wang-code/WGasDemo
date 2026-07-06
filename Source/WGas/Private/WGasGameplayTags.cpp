@@ -30,19 +30,21 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.InputTag_4 = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("InputTag.4"), FString("Input Tag For Key 4"));  // 改为 4
 	GameplayTags.InputTag_Ctrl = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("InputTag.Ctrl"), FString("Input Tag For Key Ctrl"));  
+		FName("InputTag.Ctrl"), FString("Input Tag For Key Ctrl"));  
 
 
 	GameplayTags.Abilities_Attack_Melee = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Abilities.Attack.Melee"), FString("Abilities.Attack.Melee"));
+		FName("Abilities.Attack.Melee"), FString("Abilities.Attack.Melee"));
 	GameplayTags.Abilities_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Dodge"), FString("Abilities.Dodge"));
 
 
 	GameplayTags.State_Attacking_Lighting = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("State.Attacking.Lighting"), FString("State.Attacking.Lighting"));  
+		FName("State.Attacking.Lighting"), FString("State.Attacking.Lighting"));  
 	GameplayTags.State_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("State.Dodge"), FString("State.Dodge"));  
+		FName("State.Dodge"), FString("State.Dodge"));
+	GameplayTags.State_Running = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Running"), FString("State.Running"));  
 	//PlayerBlock
 	GameplayTags.Player_Block_InputPressed = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Player.Block.InputPressed"), FString("Player.Block.InputPressed"));

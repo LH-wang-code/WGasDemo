@@ -41,7 +41,8 @@ public:
 	/*State*/
 	FGameplayTag State_Attacking_Lighting;
 	FGameplayTag State_Dodge;
-
+	FGameplayTag State_Running;
+	
 	FGameplayTag Player_Block_InputPressed;
 	FGameplayTag Player_Block_InputHeld;
 	FGameplayTag Player_Block_InputReleased;

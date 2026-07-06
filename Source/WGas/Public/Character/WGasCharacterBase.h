@@ -81,6 +81,9 @@ protected:
 	UPROPERTY(EditAnywhere,Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>>StartupAbilities;	
 
+
+	UPROPERTY(EditAnywhere,Category="Abilities")
+	TArray<TSubclassOf<UGameplayAbility>>StartupPassiveAbilities;	
 	USkeletalMeshComponent* GetWeaponTraceMesh() const;
 	
 private:

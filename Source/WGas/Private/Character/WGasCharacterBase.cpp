@@ -57,6 +57,8 @@ void AWGasCharacterBase::AddCharacterAbilities()
 	if (UWGasAbilitySystemComponent* WGasASC = Cast<UWGasAbilitySystemComponent>(AbilitySystemComponent))
 	{
 		WGasASC->AddCharacterAbilities(StartupAbilities);
+		WGasASC->AddCharacterPassiveAbilities(StartupPassiveAbilities);
+		
 		bStartupAbilitiesGiven = true;
 	}
 }

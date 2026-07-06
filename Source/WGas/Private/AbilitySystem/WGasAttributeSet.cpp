@@ -72,6 +72,7 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	if (Data.EvaluatedData.Attribute==GetStaminaAttribute())
 	{
 		SetStamina(FMath::Clamp(GetStamina(), 0.0f, GetMaxStamina()));
+		
 	}
 
 	
@@ -95,6 +96,13 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 void UWGasAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+	if (Attribute == GetStaminaAttribute())
+	{
+		if (OldValue > 0.f && NewValue <= 0.f)
+		{
+			OnStaminaDepleted.Broadcast();
+		}
+	}
 	//后续做升级时可能会用到吧
 }
 

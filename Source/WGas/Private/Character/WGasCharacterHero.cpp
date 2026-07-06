@@ -3,8 +3,11 @@
 
 #include "Character/WGasCharacterHero.h"
 
+#include "WGasGameplayTags.h"
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
+#include "AbilitySystem/WGasAttributeSet.h"
 #include "Camera/CameraComponent.h"
+#include "Character/WGasLockOnComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Player/WGasPlayerController.h"
@@ -27,6 +30,8 @@ AWGasCharacterHero::AWGasCharacterHero()
 	CameraComponent->bUsePawnControlRotation = false;
 
 
+	LockOnComponent=CreateDefaultSubobject<UWGasLockOnComponent>("LockOnComponent");
+
 	InputBufferComponent = CreateDefaultSubobject<UGasInputBufferComponent>("InputBufferComponent");
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
@@ -41,8 +46,77 @@ AWGasCharacterHero::AWGasCharacterHero()
 
 void AWGasCharacterHero::ToggleWalkRun()
 {
+	if (!bIsRunning)
+	{
+		if (const UWGasAttributeSet* AS = Cast<UWGasAttributeSet>(AttributeSet))
+		{
+			if (AS->GetStamina() <= 0.f)
+			{
+				return; // 体力不够，不切跑
+			}
+		}
+	}
 	bIsRunning = !bIsRunning;
 	ApplyMovementSpeed();
+	if (!bIsRunning)
+	{
+		ClearRunningTag();
+	}
+}
+
+void AWGasCharacterHero::ForceWalk()
+{
+	if (!bIsRunning)
+	{
+		return; 
+	}
+	bIsRunning = false;
+	ApplyMovementSpeed();
+	ClearRunningTag();
+}
+
+void AWGasCharacterHero::UpdateRunningTag(const FVector2D& MoveInput)
+{
+	UWGasAbilitySystemComponent* ASC = Cast<UWGasAbilitySystemComponent>(AbilitySystemComponent);
+	if (!ASC)
+	{
+		return;
+	}
+
+	const UWGasAttributeSet* AS = Cast<UWGasAttributeSet>(AttributeSet);
+	if (bIsRunning && AS && AS->GetStamina() <= 0.f)
+	{
+		ForceWalk();
+		return;
+	}
+
+	const bool bShouldConsumeStamina = bIsRunning
+		&& !MoveInput.IsNearlyZero()
+		&& AS
+		&& AS->GetStamina() > 0.f;
+	const FGameplayTag& RunningTag = FWGasGameplayTags::Get().State_Running;
+	const bool bHasRunningTag = ASC->HasMatchingGameplayTag(RunningTag);
+
+	if (bShouldConsumeStamina)
+	{
+		if (!bHasRunningTag)
+		{
+			ASC->AddLooseGameplayTag(RunningTag);
+		}
+	}
+	else if (bHasRunningTag)
+	{
+		ClearRunningTag();
+	}
+}
+
+void AWGasCharacterHero::ClearRunningTag()
+{
+	if (UWGasAbilitySystemComponent* ASC = Cast<UWGasAbilitySystemComponent>(AbilitySystemComponent))
+	{
+		const FGameplayTag& RunningTag = FWGasGameplayTags::Get().State_Running;
+		ASC->SetLooseGameplayTagCount(RunningTag, 0);
+	}
 }
 
 void AWGasCharacterHero::ApplyMovementSpeed()
@@ -53,6 +127,15 @@ void AWGasCharacterHero::ApplyMovementSpeed()
 	}
 }
 
+void AWGasCharacterHero::BindStaminaDepletedDelegate()
+{
+	if (bStaminaDepletedBound) return;
+	if (UWGasAttributeSet* AS = Cast<UWGasAttributeSet>(AttributeSet))
+	{
+		AS->OnStaminaDepleted.AddUObject(this, &AWGasCharacterHero::ForceWalk);
+		bStaminaDepletedBound = true;
+	}
+}
 void AWGasCharacterHero::PossessedBy(AController* NewController)
 {
 	//角色被控制时添加能力
@@ -91,4 +174,13 @@ void AWGasCharacterHero::InitAbilityActorInfo()
 		);
 	}
 	InitializeDefaultAttributes();
+	BindStaminaDepletedDelegate();
+
+	//这里处理的不好，先暂时这样放着
+	if (!bRunStaminaEffectsApplied && StaminaCostGE)
+	{
+		ApplyEffectToSelf(StaminaCostGE, 1.f);
+		bRunStaminaEffectsApplied = true;
+	}
+	
 }
