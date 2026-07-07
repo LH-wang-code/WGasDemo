@@ -10,6 +10,11 @@
 #include "Engine/OverlapResult.h"
 
 
+
+void UWGasLockOnComponent::BeginPlay() 
+{
+	Super::BeginPlay();
+}
 UWGasLockOnComponent::UWGasLockOnComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -88,22 +93,8 @@ void UWGasLockOnComponent::UpdateLockOn(float DeltaTime)
 		DesiredControlRot,
 		DeltaTime,
 		LockInterpSpeed));
-	const FRotator DesiredCharRot(0.f, (TargetLoc - HeroLoc).Rotation().Yaw, 0.f);
-	Hero->SetActorRotation(FMath::RInterpConstantTo(
-		Hero->GetActorRotation(),
-		DesiredCharRot,
-		DeltaTime,
-		CharYawInterpSpeed));
 }
 
-
-void UWGasLockOnComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-
-	
-}
 
 AActor* UWGasLockOnComponent::FindBestTarget()
 {
@@ -117,9 +108,13 @@ AActor* UWGasLockOnComponent::FindBestTarget()
 	{
 		return nullptr;
 	}
+	//获取前向向量和玩家位置
 	const FVector HeroLoc = Hero->GetActorLocation();
 	const FVector Forward = PC->GetControlRotation().Vector().GetSafeNormal2D();
+	//范围
 	const float MinDot = FMath::Cos(FMath::DegreesToRadians(MaxLockHalfAngle));
+
+	//球形检测pawn类型
 	TArray<FOverlapResult> Overlaps;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(LockOnSearch), false, Hero);
 	FCollisionObjectQueryParams ObjectQuery(ECC_Pawn);
@@ -153,6 +148,7 @@ AActor* UWGasLockOnComponent::FindBestTarget()
 		}
 		if (BestTarget && FMath::IsNearlyEqual(Dot, BestDot))
 		{
+			//距离相近就比较他们的距离
 			const float NewDistSq = ToTarget.SizeSquared();
 			const float OldDistSq = FVector::DistSquared(HeroLoc, GetLockOnLocation(BestTarget));
 			if (NewDistSq >= OldDistSq)
@@ -168,13 +164,13 @@ AActor* UWGasLockOnComponent::FindBestTarget()
 
 void UWGasLockOnComponent::ClearLockOn()
 {
+	//接触锁定状态
 	bIsLockedOn = false;
 	LockTarget = nullptr;
 	if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetOwner()))
 	{
 		if (UWGasAbilitySystemComponent* ASC = Cast<UWGasAbilitySystemComponent>(Hero->GetAbilitySystemComponent()))
 		{
-			// 有 Tag 后：
 			// ASC->SetLooseGameplayTagCount(FWGasGameplayTags::Get().State_LockOn, 0);
 		}
 	}
@@ -205,6 +201,7 @@ bool UWGasLockOnComponent::IsValidLockTarget(const AActor* Target) const
 	{
 		return false;
 	}
+	//TODO :combat接口下检测IsFriend
 	const AWGasCharacterEnemy* Enemy = Cast<AWGasCharacterEnemy>(Target);
 	if (!Enemy)
 	{

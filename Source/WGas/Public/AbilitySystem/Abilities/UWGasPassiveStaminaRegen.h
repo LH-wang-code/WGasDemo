@@ -7,7 +7,7 @@
 #include "UWGasPassiveStaminaRegen.generated.h"
 
 /**
- * 
+ * 没用了
  */
 UCLASS()
 class WGAS_API UUWGasPassiveStaminaRegen : public UWGasGameplayAbility

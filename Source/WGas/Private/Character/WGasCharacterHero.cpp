@@ -24,7 +24,7 @@ AWGasCharacterHero::AWGasCharacterHero()
 	SpringArmComponent->bInheritRoll = false;
 	SpringArmComponent->SetUsingAbsoluteRotation(false);
 	SpringArmComponent->bDoCollisionTest = false;
-
+	SpringArmComponent->TargetOffset = FVector(0.f, 0.f, 100.f); 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
 	CameraComponent->bUsePawnControlRotation = false;

@@ -5,6 +5,19 @@
 
 #include "AbilitySystem/WGasAbilitySystemFunctionLibrary.h"
 #include "AbilitySystem/WGasAttributeSet.h"
+#include "AI/WGasAIController.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
+
+void AWGasCharacterEnemy::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	WGasAIController = Cast<AWGasAIController>(NewController);
+	if (WGasAIController && BehaviorTree)
+	{
+		WGasAIController->RunBehaviorTree(BehaviorTree);
+	}
+}
 
 void AWGasCharacterEnemy::BeginPlay()
 {

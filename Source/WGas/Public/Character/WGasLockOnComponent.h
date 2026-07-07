@@ -18,6 +18,13 @@ public:
 	void ToggleLockOn();
 	void UpdateLockOn(float DeltaTime);
 	bool IsLockedOn() const { return bIsLockedOn; }
+	AActor* GetLockTarget() const { return LockTarget.Get(); }
+	FVector GetLockOnLocation(const AActor* Target) const;
+
+	FVector GetCurrentLockOnLocation() const
+	{
+		return GetLockOnLocation(LockTarget.Get());
+	}
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -47,6 +54,6 @@ private:
 
 	AActor* FindBestTarget();
 	void ClearLockOn();
-	FVector GetLockOnLocation(const AActor* Target) const;
+
 	bool IsValidLockTarget(const AActor* Target) const;
 };

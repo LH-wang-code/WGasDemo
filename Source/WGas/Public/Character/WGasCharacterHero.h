@@ -27,6 +27,9 @@ public:
 	
 	UFUNCTION(BlueprintPure,Category="Input")
 	UGasInputBufferComponent*GetWGasInputBufferComponent()const {return InputBufferComponent;}
+
+	UFUNCTION(BlueprintPure, Category = "Combat")
+	UWGasLockOnComponent* GetLockOnComponent() const { return LockOnComponent; }
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void ToggleWalkRun();
 

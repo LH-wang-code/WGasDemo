@@ -24,6 +24,7 @@
 #include "WGas.h"
 #include "WGasGameplayTags.h"
 #include "Character/WGasCharacterHero.h"
+#include "Character/WGasLockOnComponent.h"
 #include "Input/WGasInputComponent.h"
 
 
@@ -62,6 +63,24 @@ void UWGasMeleeAttack::InputReleased(const FGameplayAbilitySpecHandle Handle,
 void UWGasMeleeAttack::BeginMeleeAttack()
 
 {
+	if (AWGasCharacterHero* Hero=Cast<AWGasCharacterHero>(GetWGasCharacterFromActorInfo()))
+	{
+		if (UWGasLockOnComponent* LockComp=Hero->FindComponentByClass<UWGasLockOnComponent>())
+		{
+			if (LockComp->IsLockedOn())
+			{
+				if (AActor* Target = LockComp->GetLockTarget())
+				{
+					const FVector ToTarget = LockComp->GetCurrentLockOnLocation() - Hero->GetActorLocation();
+					if (!ToTarget.IsNearlyZero())
+					{
+						Hero->SetActorRotation(FRotator(0.f, ToTarget.Rotation().Yaw, 0.f));
+
+					}
+				}
+			}
+		}
+	}
 	ApplyAttackingTags();
 	if (!bStopMovementOnAttack)
 	{

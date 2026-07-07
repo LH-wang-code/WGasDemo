@@ -242,9 +242,13 @@ void AWGasPlayerController::Move(const FInputActionValue& InputActionValue)
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
+	const AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetPawn());
+	const bool bLockOnActive = Hero && Hero->GetLockOnComponent() && Hero->GetLockOnComponent()->IsLockedOn();
+
 	if (ACharacter* GASCharacter = Cast<ACharacter>(GetPawn()))
 	{
-		if (InputAxisVector.Y > KINDA_SMALL_NUMBER)
+		// 锁定时相机朝 Boss，但不让角色跟着相机转；攻击时在 BeginMeleeAttack 里再转向
+		if (InputAxisVector.Y > KINDA_SMALL_NUMBER && !bLockOnActive)
 		{
 			const FRotator TargetRotation(0.f, Rotation.Yaw, 0.f);
 			const FRotator NewRotation = FMath::RInterpConstantTo(
@@ -258,9 +262,9 @@ void AWGasPlayerController::Move(const FInputActionValue& InputActionValue)
 		GASCharacter->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		GASCharacter->AddMovementInput(RightDirection, InputAxisVector.X);
 	}
-	if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetPawn()))
+	if (AWGasCharacterHero* HeroPawn = Cast<AWGasCharacterHero>(GetPawn()))
 	{
-		Hero->UpdateRunningTag(InputAxisVector);
+		HeroPawn->UpdateRunningTag(InputAxisVector);
 	}
 }
 
@@ -274,6 +278,14 @@ void AWGasPlayerController::StopMove(const FInputActionValue& InputActionValue)
 
 void AWGasPlayerController::Look(const FInputActionValue& InputActionValue)
 {
+	if (const AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetPawn()))
+	{
+		if (Hero->GetLockOnComponent() && Hero->GetLockOnComponent()->IsLockedOn())
+		{
+			return;
+		}
+	}
+
 	const FVector2D LookAxis = InputActionValue.Get<FVector2D>();
 	if (LookAxis.IsNearlyZero())
 	{

@@ -22,7 +22,8 @@ public class WGas : ModuleRules
 			"GameplayTasks",
 			"GameplayTags",
 			"GameplayAbilities",
-			"EnhancedInput"
+			"EnhancedInput",
+			"NavigationSystem"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
