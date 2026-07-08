@@ -49,7 +49,8 @@ public:
 	FGameplayTag Player_Block_CursorTrace;
 
 
-	
+	FGameplayTag Ability_Boss_Melee;
+	FGameplayTag State_Boss_Attacking;
 
 
 	

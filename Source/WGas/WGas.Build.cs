@@ -26,7 +26,7 @@ public class WGas : ModuleRules
 			"NavigationSystem"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[] { "MotionWarping" });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"WGas",

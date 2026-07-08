@@ -55,4 +55,9 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Player_Block_CursorTrace = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Player.Block.CursorTrace"), FString("Player.Block.CursorTrace"));
 
+
+	GameplayTags.Ability_Boss_Melee = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Ability.Boss.Melee"), FString("Boss melee attack ability"));
+	GameplayTags.State_Boss_Attacking = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Boss.Attacking"), FString("Boss is performing an attack"));
 }

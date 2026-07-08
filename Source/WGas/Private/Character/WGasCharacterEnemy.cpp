@@ -8,6 +8,12 @@
 #include "AI/WGasAIController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "MotionWarpingComponent.h"
+
+AWGasCharacterEnemy::AWGasCharacterEnemy()
+{
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+}
 
 void AWGasCharacterEnemy::PossessedBy(AController* NewController)
 {
@@ -16,6 +22,7 @@ void AWGasCharacterEnemy::PossessedBy(AController* NewController)
 	if (WGasAIController && BehaviorTree)
 	{
 		WGasAIController->RunBehaviorTree(BehaviorTree);
+		AddCharacterAbilities();
 	}
 }
 

@@ -12,15 +12,19 @@
  */
 class AWGasAIController;
 class UBehaviorTree;
+class UMotionWarpingComponent;
+
 UCLASS()
 class WGAS_API AWGasCharacterEnemy : public AWGasCharacterBase
 {
 	GENERATED_BODY()
 
-
 public:
+	AWGasCharacterEnemy();
 
 	virtual void PossessedBy(AController* NewController)override;
+
+	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 protected:
 	ECharacterClass CharacterClass=ECharacterClass::Warrior;
 	int32 Level=1;
@@ -31,6 +35,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<AWGasAIController>WGasAIController;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Motion Warping")
+	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
 	virtual void BeginPlay() override;
 
 	virtual void InitAbilityActorInfo() override;
