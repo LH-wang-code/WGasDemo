@@ -79,10 +79,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Melee")
 
 	void BeginMeleeAttack();
-	
-	UFUNCTION(BlueprintCallable, Category = "Melee")
-
-	virtual void PerformMeleeHitCheck();
 
 
 	UFUNCTION(BlueprintCallable, Category = "Melee")

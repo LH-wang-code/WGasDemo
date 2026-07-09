@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float Damage;
 
+	FDamagePayLoad BuildDamagePayload() const;
+	void RegisterDamageWindow();
+	void UnregisterDamageWindow();
 public:
 	FDamageEffectParams MakeDamageEffectParams(AActor* TargetActor, float OverrideDamage = -1.f) const;
 

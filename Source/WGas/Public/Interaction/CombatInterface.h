@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "CombatInterface.generated.h"
-
+class UAbilitySystemComponent;
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI,BlueprintType)
 class UCombatInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -20,6 +20,8 @@ class WGAS_API ICombatInterface
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	virtual UAbilitySystemComponent* GetDamageableASC() const = 0;
+
+	virtual bool IsAliveForCombat() const { return true; }
 };

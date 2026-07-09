@@ -32,11 +32,24 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.InputTag_Ctrl = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("InputTag.Ctrl"), FString("Input Tag For Key Ctrl"));  
 
+	//Data
+	GameplayTags.Data_Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Data.Damage"), FString("Data.Damage"));
+	GameplayTags.Abilities_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Data.PoiseDamage"), FString("Data.PoiseDamage"));
 
 	GameplayTags.Abilities_Attack_Melee = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Attack.Melee"), FString("Abilities.Attack.Melee"));
 	GameplayTags.Abilities_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Dodge"), FString("Abilities.Dodge"));
+
+	//Ability
+	GameplayTags.Ability_Boss_Melee = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Ability.Boss.Melee"), FString("Abilities.Dodge"));
+	GameplayTags.Ability_Boss_Charge = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Ability.Boss.Charge"), FString("Abilitiy.Boss.Charge"));
+	GameplayTags.Ability_Player_Melee_Combo = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Abilitiy.Player.Melee.Combo"), FString("Abilitiy.Player.Melee.Combo"));
 
 
 	GameplayTags.State_Attacking_Lighting = UGameplayTagsManager::Get().AddNativeGameplayTag(

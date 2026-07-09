@@ -147,3 +147,23 @@ day8
 --调整AI行为树，调整攻击和追踪玩家的逻辑
 
 --添加motionwrap组件，但当前的攻击动画没有根运动，无法在锁定玩家的前几帧进行转向，后边再找一些动画。。
+
+
+
+day9
+
+2026.7.9
+
+今日任务：修改造成技能以及造成伤害的整体链路 ，给boss添加连招表，并选择
+
+
+
+--在gameplaytypes中添加了结构体payload，和params作用差不多，用于攻击前给上海来源组装一些信息
+
+--调整了伤害的逻辑链路，新建了combatcomponent，将伤害路径窗口，以及伤害本身的窗口移到了这里，玩家角色和敌人公用该组件
+
+--规范了gameplaytag，针对伤害的名字，状态以及需要赋值的tag重新整理，使伤害的tag添加更清晰，选择招式使用damagetype，激活和结束使用本身的abilitytag
+
+--添加了BossAttackInfo，这个部分针对boss攻击招式的tag以及条件和权重进行整合，boss将根据这些条件选出tag，从startupabilities中选出适合的技能
+
+--添加了boss选择技能的BTT_Task,就像上述提到的，从info中根据tag选出符合条件的招式进行播放

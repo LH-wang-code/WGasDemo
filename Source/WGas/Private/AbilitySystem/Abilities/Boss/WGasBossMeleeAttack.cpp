@@ -19,14 +19,18 @@ UWGasBossMeleeAttack::UWGasBossMeleeAttack()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
+	FGameplayTagContainer AssetTagContainer;
 	if (Tags.Ability_Boss_Melee.IsValid())
 	{
 		AbilityTags.AddTag(Tags.Ability_Boss_Melee);
+		AssetTagContainer.AddTag(Tags.Ability_Boss_Melee);
 	}
 	if (Tags.Abilities_Attack_Melee.IsValid())
 	{
 		AbilityTags.AddTag(Tags.Abilities_Attack_Melee);
+		AssetTagContainer.AddTag(Tags.Abilities_Attack_Melee);
 	}
+	SetAssetTags(AssetTagContainer);
 	if (Tags.State_Boss_Attacking.IsValid())
 	{
 		ActivationBlockedTags.AddTag(Tags.State_Boss_Attacking);
@@ -82,6 +86,7 @@ void UWGasBossMeleeAttack::BeginBossMeleeAttack()
 			Movement->bAllowPhysicsRotationDuringAnimRootMotion = true;
 			Movement->StopMovementImmediately();
 		}
+		RegisterDamageWindow();
 	}
 }
 
@@ -185,6 +190,10 @@ void UWGasBossMeleeAttack::FinishAttack(bool bWasCancelled)
 
 	if (AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo())
 	{
+		if (Character->CombatComponent)
+		{
+			Character->CombatComponent->EndDamageWindow();
+		}
 		if (UMotionWarpingComponent* MWC = Character->FindComponentByClass<UMotionWarpingComponent>())
 		{
 			MWC->RemoveWarpTarget(FName("AttackTarget"));
@@ -203,7 +212,7 @@ void UWGasBossMeleeAttack::FinishAttack(bool bWasCancelled)
 			}
 		}
 	}
-
+	UnregisterDamageWindow();
 	RemoveAttackingTags();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, bWasCancelled);
 }

@@ -7,6 +7,7 @@
 #include "Character/WGasCharacterBase.h"
 #include "WGasCharacterEnemy.generated.h"
 
+class UBossAttackInfo;
 /**
  * 
  */
@@ -25,6 +26,8 @@ public:
 	virtual void PossessedBy(AController* NewController)override;
 
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
+	UPROPERTY(EditDefaultsOnly, Category = "AI|Combat")
+	TObjectPtr<UBossAttackInfo> AttackSet;
 protected:
 	ECharacterClass CharacterClass=ECharacterClass::Warrior;
 	int32 Level=1;
@@ -38,9 +41,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Motion Warping")
 	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
+
+
 	virtual void BeginPlay() override;
 
 	virtual void InitAbilityActorInfo() override;
 	virtual void InitializeDefaultAttributes()const override;
 
+	virtual USkeletalMeshComponent* GetWeaponTraceMesh() const override;
 };

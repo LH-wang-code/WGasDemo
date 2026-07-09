@@ -34,23 +34,32 @@ public:
 	FGameplayTag InputTag_4;
 	FGameplayTag InputTag_Ctrl;
 
-	//Damage
+	//Data
+	FGameplayTag Data_Damage;
+	FGameplayTag Data_PoiseDamage;
+	
+	//Abilities
 
 	FGameplayTag Abilities_Attack_Melee;
 	FGameplayTag Abilities_Dodge;
+
+	//Ability
+	FGameplayTag Ability_Boss_Melee;
+	FGameplayTag Ability_Player_Melee_Combo;
+	FGameplayTag Ability_Boss_Charge;
+	
 	/*State*/
 	FGameplayTag State_Attacking_Lighting;
 	FGameplayTag State_Dodge;
 	FGameplayTag State_Running;
+	FGameplayTag State_Boss_Attacking;
+
 	
 	FGameplayTag Player_Block_InputPressed;
 	FGameplayTag Player_Block_InputHeld;
 	FGameplayTag Player_Block_InputReleased;
 	FGameplayTag Player_Block_CursorTrace;
 
-
-	FGameplayTag Ability_Boss_Melee;
-	FGameplayTag State_Boss_Attacking;
 
 
 	

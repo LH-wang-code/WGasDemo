@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffect.h"
 #include "GameplayEffectTypes.h"
 #include "WGasEffectTypes.generated.h"
 
@@ -55,4 +56,28 @@ public:
 protected:
 	TSharedPtr<FGameplayTag>DamageType;
 
+};
+USTRUCT(BlueprintType)
+struct FDamagePayLoad
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	TSubclassOf<UGameplayEffect> DamageEffectClass = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	FGameplayTag DamageType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
+	float BaseDamage = 0.f;
+	
+	UPROPERTY(BlueprintReadWrite, Category = "Damage")
+	TObjectPtr<UAbilitySystemComponent> SourceASC = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Damage")
+	TObjectPtr<AActor> Instigator = nullptr;
+
+	bool IsValid() const
+	{
+		return DamageEffectClass != nullptr&& SourceASC != nullptr&& BaseDamage > 0.f&& DamageType.IsValid();
+	}
 };

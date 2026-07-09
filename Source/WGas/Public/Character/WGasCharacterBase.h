@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "WGasCombatComponent.h"
 #include "GameFramework/Character.h"
+#include "Interaction/CombatInterface.h"
 #include "WGasCharacterBase.generated.h"
 
 
@@ -13,17 +15,23 @@ class USkeletalMeshComponent;
 class UAbilitySystemComponent;
 
 UCLASS()
-class WGAS_API AWGasCharacterBase : public ACharacter,public IAbilitySystemInterface
+class WGAS_API AWGasCharacterBase : public ACharacter,public IAbilitySystemInterface,public ICombatInterface
 {
 	GENERATED_BODY()
 
 public:
 
 	AWGasCharacterBase();
-
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent()const override;
 	UAttributeSet* GetAttributeSet()const { return AttributeSet; }
 
+
+	/* ICombatInerface Begin*/
+	virtual UAbilitySystemComponent* GetDamageableASC() const override;
+	virtual bool IsAliveForCombat() const override;
+
+	/* ICombatInerface End*/
+	
 protected:
 
 	virtual void BeginPlay() override;
@@ -45,55 +53,28 @@ protected:
 	TSubclassOf<UGameplayEffect>DefaultVitalAttributes;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Attributes")
 	TSubclassOf<UGameplayEffect>DefaultSecondaryAttributes;
-
-
-	
-public:	
-
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace")
-	FName WeaponTipSocket = TEXT("Weapon_Tip");
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace")
-	FName WeaponBaseSocket = TEXT("Weapon_Base");
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace")
-	float WeaponSweepRadius = 25.f;
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace", meta = (ClampMin = "1", ClampMax = "16"))
-	int32 WeaponSweepSampleCount = 10;
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|WeaponTrace")
-	TSubclassOf<UGameplayEffect> MeleeDamageEffect;
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	TObjectPtr<UWGasCombatComponent>CombatComponent;
 	UFUNCTION(BlueprintCallable, Category = "Combat|WeaponTrace")
 	void BeginWeaponSweep();
 	UFUNCTION(BlueprintCallable, Category = "Combat|WeaponTrace")
-	void TickWeaponSweep();
-	UFUNCTION(BlueprintCallable, Category = "Combat|WeaponTrace")
 	void EndWeaponSweep();
 
-
-
-
-	 
-
-public:
+	virtual USkeletalMeshComponent* GetWeaponTraceMesh() const;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent>Weapon;
+
+	
 	//我们希望在角色开始时就赋予某些能力
 	UPROPERTY(EditAnywhere,Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>>StartupAbilities;	
-
-
+	
 	UPROPERTY(EditAnywhere,Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>>StartupPassiveAbilities;	
-	USkeletalMeshComponent* GetWeaponTraceMesh() const;
 	
 private:
 	bool bStartupAbilitiesGiven = false;
-
-
-	FVector LastWeaponTipPos = FVector::ZeroVector;
-	FVector LastWeaponBasePos = FVector::ZeroVector;
-
-	bool bWeaponSweepActive = false;
-	TSet<TWeakObjectPtr<AActor>> MeleeHitActorsThisSwing;
-	void ApplyMeleeDamageToActor(AActor* HitActor);
 };

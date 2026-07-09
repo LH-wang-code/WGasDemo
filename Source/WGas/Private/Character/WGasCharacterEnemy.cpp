@@ -8,6 +8,7 @@
 #include "AI/WGasAIController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "MotionWarpingComponent.h"
 
 AWGasCharacterEnemy::AWGasCharacterEnemy()
@@ -53,4 +54,13 @@ void AWGasCharacterEnemy::InitializeDefaultAttributes() const
 	UWGasAbilitySystemFunctionLibrary::InitializeDefaultCharacterClassInfo(this,CharacterClass,Level,AbilitySystemComponent);
 
 
+}
+
+USkeletalMeshComponent* AWGasCharacterEnemy::GetWeaponTraceMesh() const
+{
+	if (Weapon && Weapon->GetSkinnedAsset())
+	{
+		return Weapon;
+	}
+	return GetMesh();
 }

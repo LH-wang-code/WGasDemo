@@ -2,10 +2,10 @@
 
 
 #include "AI/BTT_RunBossAttack.h"
-
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "WGasGameplayTags.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 UBTT_RunBossAttack::UBTT_RunBossAttack()
 {
@@ -25,18 +25,23 @@ EBTNodeResult::Type UBTT_RunBossAttack::ExecuteTask(UBehaviorTreeComponent& Owne
 	}
 
 	UAbilitySystemComponent* ASC = Pawn->FindComponentByClass<UAbilitySystemComponent>();
+
 	if (!ASC || !AttackAbilityTag.IsValid())
 	{
 		return EBTNodeResult::Failed;
 	}
-
+	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+	const FName TagName = BB ? BB->GetValueAsName(TEXT("SelectedAttackTag")) : NAME_None;
+	FGameplayTag AttackTag = FGameplayTag::RequestGameplayTag(TagName, false);
+	if (!AttackTag.IsValid())return EBTNodeResult::Failed;
+	
 	FGameplayTagContainer AbilityTags;
-	AbilityTags.AddTag(AttackAbilityTag);
+	AbilityTags.AddTag(AttackTag);
 	if (!ASC->TryActivateAbilitiesByTag(AbilityTags))
 	{
 		return EBTNodeResult::Failed;
 	}
-
+	UE_LOG(LogTemp, Warning, TEXT("Run TryActivate %s "), *AttackTag.ToString());
 	return EBTNodeResult::InProgress;
 }
 

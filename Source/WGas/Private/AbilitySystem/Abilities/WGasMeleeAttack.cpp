@@ -92,62 +92,10 @@ void UWGasMeleeAttack::BeginMeleeAttack()
 		{
 			Movement->StopMovementImmediately();
 		}
+
+		RegisterDamageWindow();
+		
 	}
-}
-void UWGasMeleeAttack::PerformMeleeHitCheck()
-{
-	AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo();
-
-	if (!Character)
-	{
-		return;
-	}
-	const FVector TraceStart = Character->GetActorLocation();
-	const FVector TraceEnd = TraceStart + Character->GetActorForwardVector() * MeleeTraceDistance;
-	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MeleeAttackTrace), false, Character);
-	FCollisionShape Sphere = FCollisionShape::MakeSphere(MeleeTraceRadius);
-	FHitResult HitResult;
-	const bool bHit = Character->GetWorld()->SweepSingleByChannel(
-		HitResult,
-		TraceStart,
-		TraceEnd,
-		FQuat::Identity,
-		ECC_Pawn,
-		Sphere,
-		QueryParams);
-
-
-
-#if ENABLE_DRAW_DEBUG
-
-	DrawDebugSweptSphere(
-
-		Character->GetWorld(),
-
-		TraceStart,
-
-		TraceEnd,
-
-		MeleeTraceRadius,
-
-		FColor::Red,
-
-		false,
-
-		1.f);
-
-#endif
-	if (!bHit)
-	{
-		return;
-	}
-	AActor* HitActor = HitResult.GetActor();
-	if (!HitActor || HitActor == Character)
-	{
-		return;
-	}
-	
-	// 后续在这里应用 GameplayEffect 伤害
 }
 
 void UWGasMeleeAttack::EndMeleeAttack(bool bWasCancelled)
@@ -161,6 +109,8 @@ void UWGasMeleeAttack::EndMeleeAttack(bool bWasCancelled)
 	{
 		K2_EndAbility();
 	}
+	UnregisterDamageWindow();
+	
 }
 void UWGasMeleeAttack::OnMeleeMontageFinished(bool bWasCancelled)
 {

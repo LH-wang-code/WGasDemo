@@ -7,8 +7,10 @@
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
 #include "AbilitySystem/WGasAttributeSet.h"
 #include "AbilitySystem/Abilities/WGasDamageGameplayAbility.h"
+#include "Abilities/GameplayAbility.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "DrawDebugHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "UObject/FastReferenceCollector.h"
 
 // Sets default values
 AWGasCharacterBase::AWGasCharacterBase()
@@ -17,7 +19,7 @@ AWGasCharacterBase::AWGasCharacterBase()
 
 	AbilitySystemComponent = CreateDefaultSubobject<UWGasAbilitySystemComponent>("AbilitySystemComponent");
 	AttributeSet = CreateDefaultSubobject<UWGasAttributeSet>("AttributeSet");
-	
+	CombatComponent = CreateDefaultSubobject<UWGasCombatComponent>(TEXT("CombatComponent"));
 	Weapon = CreateDefaultSubobject< USkeletalMeshComponent>("Weapon");
 	Weapon->SetupAttachment(GetMesh(), FName("weapon_r"));
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -31,6 +33,21 @@ AWGasCharacterBase::AWGasCharacterBase()
 UAbilitySystemComponent* AWGasCharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+UAbilitySystemComponent* AWGasCharacterBase::GetDamageableASC() const
+{
+	return AbilitySystemComponent;
+}
+
+bool AWGasCharacterBase::IsAliveForCombat() const
+{
+	const UWGasAttributeSet* AS = Cast<UWGasAttributeSet>(AttributeSet);
+	if (!AS)
+	{
+		return true;  
+	}
+	return AS->GetHealth() > 0.f;
 }
 
 void AWGasCharacterBase::BeginPlay()
@@ -92,98 +109,20 @@ void AWGasCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> Gameplay
 
 void AWGasCharacterBase::BeginWeaponSweep()
 {
-	if (USkeletalMeshComponent* TraceMesh=GetWeaponTraceMesh())
-	{
-		LastWeaponTipPos=TraceMesh->GetSocketLocation(WeaponTipSocket);
-		LastWeaponBasePos=TraceMesh->GetSocketLocation(WeaponBaseSocket);
-	}
-	MeleeHitActorsThisSwing.Empty();
-	bWeaponSweepActive = true;
-}
-
-void AWGasCharacterBase::TickWeaponSweep()
-{
-	if (!bWeaponSweepActive) return;
-	USkeletalMeshComponent* TraceMesh = GetWeaponTraceMesh();
-	if (!TraceMesh
-	|| !TraceMesh->DoesSocketExist(WeaponBaseSocket)
-	|| !TraceMesh->DoesSocketExist(WeaponTipSocket))
-	{
-		return;
-	}
-	const int32 SampleCount = FMath::Max(WeaponSweepSampleCount, 1);
-	const FVector CurrentBase = TraceMesh->GetSocketLocation(WeaponBaseSocket);
-	const FVector CurrentTip  = TraceMesh->GetSocketLocation(WeaponTipSocket);
-
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(WeaponSweep), false, this);
-	Params.AddIgnoredActor(this);
-
-	for (int32 i = 0; i <= SampleCount; i++)
-	{
-		const float Alpha = static_cast<float>(i) / static_cast<float>(SampleCount);
-		const FVector LastPos     = FMath::Lerp(LastWeaponBasePos, LastWeaponTipPos, Alpha);
-		const FVector CurrentPos  = FMath::Lerp(CurrentBase, CurrentTip, Alpha);
-		if (LastPos.Equals(CurrentPos, KINDA_SMALL_NUMBER))
-		{
-			continue;
-		}
-		FHitResult Hit;
-		const bool bHit = GetWorld()->SweepSingleByChannel(
-			Hit,
-			LastPos,
-			CurrentPos,
-			FQuat::Identity,
-			ECC_Pawn,
-			FCollisionShape::MakeSphere(WeaponSweepRadius),
-			Params);
-		DrawDebugLine(GetWorld(), LastPos, CurrentPos, FColor::Red, false, 0.5f, 0, 2.f);
-		DrawDebugSphere(GetWorld(), CurrentPos, WeaponSweepRadius, 8, FColor::Yellow, false, 0.5f);
-		if (bHit && Hit.GetActor())
-		{
-			if (!Cast<APawn>(Hit.GetActor()))
-			{
-				continue;
-			}
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(
-					-1, 2.f, FColor::Green,
-					FString::Printf(TEXT("Hit: %s"), *Hit.GetActor()->GetName()));
-			}
-			ApplyMeleeDamageToActor(Hit.GetActor());
-		}
-	}
-	LastWeaponBasePos = CurrentBase;
-	LastWeaponTipPos  = CurrentTip;
+	if (CombatComponent)CombatComponent->BeginWeaponSweep();
 }
 
 void AWGasCharacterBase::EndWeaponSweep()
 {
-	bWeaponSweepActive = false;
-	MeleeHitActorsThisSwing.Empty();
+	if (CombatComponent)CombatComponent->EndWeaponSweep();
 }
 
 USkeletalMeshComponent* AWGasCharacterBase::GetWeaponTraceMesh() const
 {
-	return Weapon;
+	if (Weapon && Weapon->GetSkinnedAsset())
+	{
+		return Weapon;
+	}
+	return GetMesh();
 }
 
-void AWGasCharacterBase::ApplyMeleeDamageToActor(AActor* HitActor)
-{
-	if (!HitActor||MeleeHitActorsThisSwing.Contains(HitActor))return;
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (!ASC) return;
-	const FGameplayTag MeleeLightTag = FWGasGameplayTags::Get().Abilities_Attack_Melee;
-	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
-	{
-		if (!Spec.IsActive() || !Spec.Ability) continue;
-		// GA CDO 上的 Ability Tags
-		if (!Spec.Ability->GetAssetTags().HasTagExact(MeleeLightTag)) continue;
-		UWGasDamageGameplayAbility* DamageGA =
-			Cast<UWGasDamageGameplayAbility>(Spec.GetPrimaryInstance());
-		if (!DamageGA) continue;
-		DamageGA->CauseDamage(HitActor, DamageGA->GetCurrentDamage());
-		MeleeHitActorsThisSwing.Add(HitActor);
-		return;
-	}
-}
