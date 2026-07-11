@@ -12,7 +12,6 @@ UBTT_RunBossAttack::UBTT_RunBossAttack()
 	NodeName = TEXT("Run Boss Attack");
 	bNotifyTick = true;
 	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
-	AttackAbilityTag = Tags.Ability_Boss_Melee;
 	AttackingStateTag = Tags.State_Boss_Attacking;
 }
 

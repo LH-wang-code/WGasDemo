@@ -44,16 +44,22 @@ public:
 	FGameplayTag Abilities_Dodge;
 
 	//Ability
-	FGameplayTag Ability_Boss_Melee;
-	FGameplayTag Ability_Player_Melee_Combo;
+	FGameplayTag Ability_Boss_Melee_1;
+	FGameplayTag Ability_Boss_Melee_2;
+	FGameplayTag Ability_Boss_Melee_3;
+	FGameplayTag Ability_Boss_Melee_4;
+	FGameplayTag Ability_Boss_Melee_5;
+	
 	FGameplayTag Ability_Boss_Charge;
+	
+	FGameplayTag Ability_Player_Melee_Combo;
 	
 	/*State*/
 	FGameplayTag State_Attacking_Lighting;
 	FGameplayTag State_Dodge;
 	FGameplayTag State_Running;
 	FGameplayTag State_Boss_Attacking;
-
+	FGameplayTag State_Invulnerable;
 	
 	FGameplayTag Player_Block_InputPressed;
 	FGameplayTag Player_Block_InputHeld;

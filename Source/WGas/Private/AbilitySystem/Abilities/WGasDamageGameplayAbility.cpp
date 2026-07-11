@@ -14,7 +14,7 @@ void UWGasDamageGameplayAbility::CauseDamage(AActor* TargetActor,float OverrideD
 		  MakeDamageEffectParams(TargetActor, OverrideDamage));
 }
 
-FDamage UWGasDamageGameplayAbility::BuildDamagePayload() const
+FDamagePayLoad UWGasDamageGameplayAbility::BuildDamagePayload() const
 {
 	FDamagePayLoad Payload;
 	Payload.DamageEffectClass = DamageEffectClass;

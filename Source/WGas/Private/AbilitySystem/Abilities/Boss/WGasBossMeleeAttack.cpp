@@ -20,11 +20,6 @@ UWGasBossMeleeAttack::UWGasBossMeleeAttack()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
 	FGameplayTagContainer AssetTagContainer;
-	if (Tags.Ability_Boss_Melee.IsValid())
-	{
-		AbilityTags.AddTag(Tags.Ability_Boss_Melee);
-		AssetTagContainer.AddTag(Tags.Ability_Boss_Melee);
-	}
 	if (Tags.Abilities_Attack_Melee.IsValid())
 	{
 		AbilityTags.AddTag(Tags.Abilities_Attack_Melee);
@@ -98,8 +93,10 @@ void UWGasBossMeleeAttack::FaceTargetActor()
 		return;
 	}
 
+	AAIController* AIController = Cast<AAIController>(Character->GetController());
+
 	AActor* Target = nullptr;
-	if (AAIController* AIController = Cast<AAIController>(Character->GetController()))
+	if (AIController)
 	{
 		if (const UBlackboardComponent* BB = AIController->GetBlackboardComponent())
 		{
@@ -118,14 +115,23 @@ void UWGasBossMeleeAttack::FaceTargetActor()
 		TargetLoc.Z += TargetChar->GetSimpleCollisionHalfHeight();
 	}
 
-	FVector ToTarget = TargetLoc - Character->GetActorLocation();
+	FVector ToTarget = Target->GetActorLocation() - Character->GetActorLocation();
 	ToTarget.Z = 0.f;
-	if (ToTarget.IsNearlyZero())
-	{
-		return;
-	}
 
-	const FRotator FaceRot(0.f, ToTarget.Rotation().Yaw, 0.f);
+	FRotator FaceRot;
+	if (ToTarget.Normalize())
+	{
+		FaceRot = FRotator(0.f, ToTarget.Rotation().Yaw, 0.f);
+	}
+	else if (AIController)
+	{
+		// 贴脸时水平方向几乎为 0，用 AI 当前朝向（MoveTo 通常已对准玩家）
+		FaceRot = FRotator(0.f, AIController->GetControlRotation().Yaw, 0.f);
+	}
+	else
+	{
+		FaceRot = FRotator(0.f, Character->GetActorRotation().Yaw, 0.f);
+	}
 
 	UMotionWarpingComponent* MWC = nullptr;
 	if (const AWGasCharacterEnemy* Enemy = Cast<AWGasCharacterEnemy>(Character))
@@ -155,7 +161,7 @@ void UWGasBossMeleeAttack::FaceTargetActor()
 #endif
 
 	Character->SetActorRotation(FaceRot);
-	if (AAIController* AIController = Cast<AAIController>(Character->GetController()))
+	if (AIController)
 	{
 		AIController->ClearFocus(EAIFocusPriority::Gameplay);
 		AIController->SetControlRotation(FaceRot);
@@ -206,7 +212,7 @@ void UWGasBossMeleeAttack::FinishAttack(bool bWasCancelled)
 		{
 			if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
 			{
-				Movement->bOrientRotationToMovement = bCachedOrientRotationToMovement;
+				Movement->bOrientRotationToMovement = false;
 				Movement->bUseControllerDesiredRotation = bCachedUseControllerDesiredRotation;
 				Movement->bAllowPhysicsRotationDuringAnimRootMotion = bCachedAllowPhysicsRotationDuringAnimRootMotion;
 			}

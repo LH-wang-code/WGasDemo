@@ -44,20 +44,30 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("Abilities.Dodge"), FString("Abilities.Dodge"));
 
 	//Ability
-	GameplayTags.Ability_Boss_Melee = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Ability.Boss.Melee"), FString("Abilities.Dodge"));
+	GameplayTags.Ability_Boss_Melee_1 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Melee.1"), FString("Ability.Boss.Melee.1"));
+	GameplayTags.Ability_Boss_Melee_2 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Melee.2"), FString("Ability.Boss.Melee.2"));
+	GameplayTags.Ability_Boss_Melee_3 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Melee.3"), FString("Ability.Boss.Melee.3"));
+	GameplayTags.Ability_Boss_Melee_4 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Melee.4"), FString("Ability.Boss.Melee.4"));
+	GameplayTags.Ability_Boss_Melee_5 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Melee.5"), FString("Ability.Boss.Melee.5"));
 	GameplayTags.Ability_Boss_Charge = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Ability.Boss.Charge"), FString("Abilitiy.Boss.Charge"));
+		FName("Ability.Boss.Charge"), FString("Abilitiy.Boss.Charge"));
 	GameplayTags.Ability_Player_Melee_Combo = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Abilitiy.Player.Melee.Combo"), FString("Abilitiy.Player.Melee.Combo"));
+		FName("Abilitiy.Player.Melee.Combo"), FString("Abilitiy.Player.Melee.Combo"));
 
-
+	//state
 	GameplayTags.State_Attacking_Lighting = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Attacking.Lighting"), FString("State.Attacking.Lighting"));  
 	GameplayTags.State_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Dodge"), FString("State.Dodge"));
 	GameplayTags.State_Running = UGameplayTagsManager::Get().AddNativeGameplayTag(
-		FName("State.Running"), FString("State.Running"));  
+		FName("State.Running"), FString("State.Running"));
+	GameplayTags.State_Invulnerable = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("State.Invulnerable"), FString("State.Invulnerable"));  
 	//PlayerBlock
 	GameplayTags.Player_Block_InputPressed = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Player.Block.InputPressed"), FString("Player.Block.InputPressed"));
@@ -67,10 +77,7 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("Player.Block.InputReleased"), FString("Player.Block.InputReleased"));
 	GameplayTags.Player_Block_CursorTrace = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Player.Block.CursorTrace"), FString("Player.Block.CursorTrace"));
-
-
-	GameplayTags.Ability_Boss_Melee = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Ability.Boss.Melee"), FString("Boss melee attack ability"));
+	
 	GameplayTags.State_Boss_Attacking = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Boss.Attacking"), FString("Boss is performing an attack"));
 }

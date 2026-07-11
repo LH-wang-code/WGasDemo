@@ -9,11 +9,19 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "MotionWarpingComponent.h"
 
 AWGasCharacterEnemy::AWGasCharacterEnemy()
 {
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+
+	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
+	{
+		Movement->bOrientRotationToMovement = false;
+		Movement->bUseControllerDesiredRotation = false;
+		Movement->RotationRate = FRotator(0.f, 720.f, 0.f);
+	}
 }
 
 void AWGasCharacterEnemy::PossessedBy(AController* NewController)
