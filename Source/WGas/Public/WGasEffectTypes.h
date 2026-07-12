@@ -34,6 +34,8 @@ struct FDamageEffectParams
 	
 	UPROPERTY(BlueprintReadWrite)
 	float BaseDamage = 0.f;
+	UPROPERTY(BlueprintReadWrite)
+	float BasePoiseDamage = 0.f;
 };
 
 USTRUCT(BlueprintType)
@@ -75,7 +77,8 @@ struct FDamagePayLoad
 
 	UPROPERTY(BlueprintReadWrite, Category = "Damage")
 	TObjectPtr<AActor> Instigator = nullptr;
-
+	UPROPERTY(BlueprintReadWrite)
+	float BasePoiseDamage = 0.f;
 	bool IsValid() const
 	{
 		return DamageEffectClass != nullptr&& SourceASC != nullptr&& BaseDamage > 0.f&& DamageType.IsValid();

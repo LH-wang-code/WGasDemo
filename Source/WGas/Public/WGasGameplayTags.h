@@ -60,6 +60,19 @@ public:
 	FGameplayTag State_Running;
 	FGameplayTag State_Boss_Attacking;
 	FGameplayTag State_Invulnerable;
+	FGameplayTag State_Boss_PoiseBroken;
+	
+
+	/*
+	 * Event
+	 */
+	FGameplayTag Event_Boss_PoiseBroken;
+
+
+	/*
+	 * Debuff
+	 */
+	FGameplayTag Debuff_Boss_Weak;
 	
 	FGameplayTag Player_Block_InputPressed;
 	FGameplayTag Player_Block_InputHeld;

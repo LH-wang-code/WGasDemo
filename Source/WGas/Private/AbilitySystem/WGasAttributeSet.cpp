@@ -91,6 +91,18 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 					Damage, GetHealth() + Damage, GetHealth()));
 		}
 	}
+
+	if (Data.EvaluatedData.Attribute == GetIncomingPoiseDamageAttribute())
+	{
+		const float PoiseDamage = GetIncomingPoiseDamage();
+		SetIncomingPoiseDamage(0.f);
+		// 破韧期间只回不涨：Regen 在恢复，继续吃 Poise 伤害会被打回 0，永远满不了
+		if (PoiseDamage > 0.f && !bPoiseBrokenActive)
+		{
+			const float NewPoise = GetPoise() - PoiseDamage;
+			SetPoise(FMath::Clamp(NewPoise, 0.f, GetMaxPoise()));
+		}
+	}
 }
 
 void UWGasAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
@@ -103,7 +115,20 @@ void UWGasAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute,
 			OnStaminaDepleted.Broadcast();
 		}
 	}
-	//后续做升级时可能会用到吧
+	if (Attribute == GetPoiseAttribute())
+	{
+		if (!bPoiseBrokenActive && OldValue > 0.f && NewValue <= 0.f)
+		{
+			bPoiseBrokenActive = true;
+			OnPoiseBroken.Broadcast();
+		}
+		const float maxPoise = GetMaxPoise();
+		if (bPoiseBrokenActive && maxPoise > 0.f && NewValue >= maxPoise)
+		{
+			bPoiseBrokenActive = false;
+			OnPoiseRecovered.Broadcast();
+		}
+	}
 }
 
 void UWGasAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const

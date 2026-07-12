@@ -54,7 +54,8 @@ struct FEffectProperties
 template<class T>
 using TStaticFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateUserPolicy>::FFuncPtr;
 DECLARE_MULTICAST_DELEGATE(FOnStaminaDepleted);
-
+DECLARE_MULTICAST_DELEGATE(FOnPoiseBroken);
+DECLARE_MULTICAST_DELEGATE(FOnPoiseRecovered);
 UCLASS()
 class WGAS_API UWGasAttributeSet : public UAttributeSet
 {
@@ -64,7 +65,8 @@ public:
 	UWGasAttributeSet();
 
 	FOnStaminaDepleted OnStaminaDepleted;
-	
+	FOnPoiseBroken OnPoiseBroken;
+	FOnPoiseRecovered OnPoiseRecovered;
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)override;
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)override;
@@ -124,6 +126,8 @@ public:
 
 
 private:
+
+	bool bPoiseBrokenActive = false;
 	//从回调数据里解析信息
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props)const;
 

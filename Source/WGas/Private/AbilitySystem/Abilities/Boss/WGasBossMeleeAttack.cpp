@@ -30,6 +30,10 @@ UWGasBossMeleeAttack::UWGasBossMeleeAttack()
 	{
 		ActivationBlockedTags.AddTag(Tags.State_Boss_Attacking);
 	}
+	if (Tags.State_Boss_PoiseBroken.IsValid())
+	{
+		ActivationBlockedTags.AddTag(Tags.State_Boss_PoiseBroken);
+	}
 }
 
 void UWGasBossMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,

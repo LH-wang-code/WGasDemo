@@ -20,6 +20,7 @@ FDamagePayLoad UWGasDamageGameplayAbility::BuildDamagePayload() const
 	Payload.DamageEffectClass = DamageEffectClass;
 	Payload.DamageType        = DamageType;
 	Payload.BaseDamage        = Damage > 0.f ? Damage : 5.f;
+	Payload.BasePoiseDamage = PoiseDamage > 0.f ? PoiseDamage : 0.f;
 	Payload.SourceASC         = GetAbilitySystemComponentFromActorInfo();
 	Payload.Instigator        = GetAvatarActorFromActorInfo();
 	return Payload;
@@ -67,6 +68,7 @@ FDamageEffectParams UWGasDamageGameplayAbility::MakeDamageEffectParams(AActor* T
 	{
 		Params.BaseDamage = Damage > 0.f ? Damage : 5.f;
 	}
+	Params.BasePoiseDamage = PoiseDamage > 0.f ? PoiseDamage : 0.f;
 	Params.DamageType=DamageType;
 	return Params;
 }

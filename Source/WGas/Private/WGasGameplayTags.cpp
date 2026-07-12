@@ -34,9 +34,9 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 
 	//Data
 	GameplayTags.Data_Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Data.Damage"), FString("Data.Damage"));
-	GameplayTags.Abilities_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Data.PoiseDamage"), FString("Data.PoiseDamage"));
+		FName("Data.Damage"), FString("Data.Damage"));
+	GameplayTags.Data_PoiseDamage = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Data.PoiseDamage"), FString("Data.PoiseDamage"));
 
 	GameplayTags.Abilities_Attack_Melee = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Attack.Melee"), FString("Abilities.Attack.Melee"));
@@ -67,7 +67,18 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.State_Running = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Running"), FString("State.Running"));
 	GameplayTags.State_Invulnerable = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("State.Invulnerable"), FString("State.Invulnerable"));  
+		FName("State.Invulnerable"), FString("State.Invulnerable"));
+	GameplayTags.State_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Boss.PoiseBroken"), FString("State.Boss.PoiseBroken"));
+
+	//Event
+	GameplayTags.Event_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Event.Boss.PoiseBroken"), FString("Event.Boss.PoiseBroken"));
+
+	//Debuff
+	GameplayTags.Debuff_Boss_Weak = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Boss.Weak"), FString("Debuff.Boss.Weak"));
+
 	//PlayerBlock
 	GameplayTags.Player_Block_InputPressed = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Player.Block.InputPressed"), FString("Player.Block.InputPressed"));

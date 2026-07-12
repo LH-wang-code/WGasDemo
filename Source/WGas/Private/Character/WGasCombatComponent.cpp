@@ -187,7 +187,7 @@ void UWGasCombatComponent::NotifyHit(AActor* HitActor)
 	Params.TargetAbilitySystemComponent    = TargetASC;
 	Params.DamageType                      = CurrentPayload.DamageType;
 	Params.BaseDamage                      = CurrentPayload.BaseDamage;
-
+	Params.BasePoiseDamage				   = CurrentPayload.BasePoiseDamage;
 	UWGasAbilitySystemFunctionLibrary::ApplyDamageEffectParams(Params);
 #if !UE_BUILD_SHIPPING
 	if (GEngine)

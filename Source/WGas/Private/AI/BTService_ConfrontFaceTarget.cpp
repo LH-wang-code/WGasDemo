@@ -52,6 +52,11 @@ void UBTService_ConfrontFaceTarget::ApplyFaceRotation(UBehaviorTreeComponent& Ow
 		return;
 	}
 
+	if (Blackboard->GetValueAsBool(TEXT("bPoiseBroken")))
+	{
+		return;
+	}
+
 	AActor* Target = Cast<AActor>(Blackboard->GetValueAsObject(TargetActorKey.SelectedKeyName));
 	if (!IsValid(Target))
 	{

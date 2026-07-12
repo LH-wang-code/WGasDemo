@@ -23,7 +23,8 @@ protected:
 	FGameplayTag DamageType;
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float Damage;
-
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	float PoiseDamage = 0.f;
 	FDamagePayLoad BuildDamagePayload() const;
 	void RegisterDamageWindow();
 	void UnregisterDamageWindow();

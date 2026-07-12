@@ -9,6 +9,7 @@
 #include "Game/WGasGamemode.h"
 #include "Kismet/GameplayStatics.h"
 #include "WGasEffectTypes.h"
+#include "WGasGameplayTags.h"
 
 UCharacterClassInfo* UWGasAbilitySystemFunctionLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
 {
@@ -44,11 +45,14 @@ void UWGasAbilitySystemFunctionLibrary::ApplyDamageEffectParams(const FDamageEff
 	{
 		return;
 	}
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	FGameplayEffectSpecHandle SpecHandle = Params.SourceAbilitySystemComponent->MakeOutgoingSpec(
+		Params.DamageGameplayEffectClass, 1.f, Params.SourceAbilitySystemComponent->MakeEffectContext());
 
-	FGameplayEffectSpecHandle SpecHandle =Params.SourceAbilitySystemComponent->MakeOutgoingSpec(Params.DamageGameplayEffectClass, 1.f,Params.SourceAbilitySystemComponent->MakeEffectContext());
-
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Params.DamageType, Params.BaseDamage);
 	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(
-		SpecHandle, Params.DamageType, Params.BaseDamage);
+		SpecHandle, WGasTags.Data_PoiseDamage, Params.BasePoiseDamage);
+
 	Params.SourceAbilitySystemComponent->ApplyGameplayEffectSpecToTarget(
 		*SpecHandle.Data.Get(), Params.TargetAbilitySystemComponent);
 }
