@@ -70,6 +70,14 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("State.Invulnerable"), FString("State.Invulnerable"));
 	GameplayTags.State_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Boss.PoiseBroken"), FString("State.Boss.PoiseBroken"));
+	GameplayTags.State_Boss_Invulnerable = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Boss.Invulnerable"), FString("State.Boss.Invulnerable"));
+	GameplayTags.State_Boss_PhaseTransition= UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Boss.PhaseTransition"), FString("State.Boss.PhaseTransition"));
+	GameplayTags.State_Boss_Phase_1= UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Boss.Phase.1"), FString("State.Boss.Phase.1"));
+	GameplayTags.State_Boss_Phase_2= UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Boss.Phase.2"), FString("State.Boss.Phase.2"));
 
 	//Event
 	GameplayTags.Event_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(

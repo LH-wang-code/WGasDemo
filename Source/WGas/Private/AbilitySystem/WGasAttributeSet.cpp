@@ -78,7 +78,7 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	
 	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
-		//TODO:处理伤害
+		
 		const float Damage=GetIncomingDamage();
 		SetIncomingDamage(0.f);
 		const float NewHealth = GetHealth() - Damage;
@@ -96,7 +96,7 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	{
 		const float PoiseDamage = GetIncomingPoiseDamage();
 		SetIncomingPoiseDamage(0.f);
-		// 破韧期间只回不涨：Regen 在恢复，继续吃 Poise 伤害会被打回 0，永远满不了
+		// 破韧期间只回不涨
 		if (PoiseDamage > 0.f && !bPoiseBrokenActive)
 		{
 			const float NewPoise = GetPoise() - PoiseDamage;

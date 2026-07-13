@@ -38,7 +38,7 @@ protected:
 	void FaceTargetActor();
 	void ApplyAttackingTags() const;
 	void RemoveAttackingTags() const;
-	void FinishAttack(bool bWasCancelled);
+	virtual void FinishAttack(bool bWasCancelled);
 	UFUNCTION()
 	void OnAttackMontageEnded();
 	bool bAttackEndHandled = false;

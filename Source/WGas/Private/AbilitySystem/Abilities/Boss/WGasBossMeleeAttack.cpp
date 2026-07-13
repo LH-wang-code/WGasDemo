@@ -34,6 +34,14 @@ UWGasBossMeleeAttack::UWGasBossMeleeAttack()
 	{
 		ActivationBlockedTags.AddTag(Tags.State_Boss_PoiseBroken);
 	}
+	if (Tags.State_Boss_PhaseTransition.IsValid())
+	{
+		ActivationBlockedTags.AddTag(Tags.State_Boss_PhaseTransition);
+	}
+	if (Tags.State_Boss_Invulnerable.IsValid())
+	{
+		ActivationBlockedTags.AddTag(Tags.State_Boss_Invulnerable);
+	}
 }
 
 void UWGasBossMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -216,7 +224,7 @@ void UWGasBossMeleeAttack::FinishAttack(bool bWasCancelled)
 		{
 			if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
 			{
-				Movement->bOrientRotationToMovement = false;
+				Movement->bOrientRotationToMovement = bCachedOrientRotationToMovement;
 				Movement->bUseControllerDesiredRotation = bCachedUseControllerDesiredRotation;
 				Movement->bAllowPhysicsRotationDuringAnimRootMotion = bCachedAllowPhysicsRotationDuringAnimRootMotion;
 			}

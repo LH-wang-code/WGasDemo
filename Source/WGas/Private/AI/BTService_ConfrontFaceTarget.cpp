@@ -4,6 +4,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Navigation/PathFollowingComponent.h"
 
 UBTService_ConfrontFaceTarget::UBTService_ConfrontFaceTarget()
 {
@@ -63,6 +64,12 @@ void UBTService_ConfrontFaceTarget::ApplyFaceRotation(UBehaviorTreeComponent& Ow
 		return;
 	}
 
+	// 正在 Move To 时不要 SetFocus，避免和寻路抢控制权
+	if (AIController->GetMoveStatus() != EPathFollowingStatus::Idle)
+	{
+		return;
+	}
+
 	if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
 	{
 		Movement->bOrientRotationToMovement = false;
@@ -70,8 +77,6 @@ void UBTService_ConfrontFaceTarget::ApplyFaceRotation(UBehaviorTreeComponent& Ow
 		Movement->RotationRate = FRotator(0.f, YawInterpSpeed, 0.f);
 	}
 
-	// PathFollowing sets EAIFocusPriority::Move toward the path goal every frame.
-	// Gameplay focus on the player overrides Move focus in GetFocalPoint().
 	AIController->bAllowStrafe = true;
 	AIController->SetFocus(Target, EAIFocusPriority::Gameplay);
 	AIController->UpdateControlRotation(DeltaSeconds, true);

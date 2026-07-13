@@ -61,7 +61,10 @@ public:
 	FGameplayTag State_Boss_Attacking;
 	FGameplayTag State_Invulnerable;
 	FGameplayTag State_Boss_PoiseBroken;
-	
+	FGameplayTag State_Boss_Invulnerable;
+	FGameplayTag State_Boss_PhaseTransition;
+	FGameplayTag State_Boss_Phase_1;
+	FGameplayTag State_Boss_Phase_2;
 
 	/*
 	 * Event

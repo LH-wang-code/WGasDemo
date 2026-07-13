@@ -24,7 +24,7 @@ public:
 	AWGasCharacterBase();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent()const override;
 	UAttributeSet* GetAttributeSet()const { return AttributeSet; }
-
+	UWGasCombatComponent* GetCombatComponent() const { return CombatComponent; }
 
 	/* ICombatInerface Begin*/
 	virtual UAbilitySystemComponent* GetDamageableASC() const override;
