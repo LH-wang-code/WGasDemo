@@ -61,7 +61,11 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 
 	//state
 	GameplayTags.State_Attacking_Lighting = UGameplayTagsManager::Get().AddNativeGameplayTag(
-		FName("State.Attacking.Lighting"), FString("State.Attacking.Lighting"));  
+		FName("State.Attacking.Lighting"), FString("State.Attacking.Lighting"));
+	GameplayTags.State_Attacking_Active = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Attacking.Active"), FString("State.Attacking.Active"));
+	GameplayTags.State_Attacking_Recovery = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Attacking.Recovery"), FString("State.Attacking.Recovery"));
 	GameplayTags.State_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Dodge"), FString("State.Dodge"));
 	GameplayTags.State_Running = UGameplayTagsManager::Get().AddNativeGameplayTag(

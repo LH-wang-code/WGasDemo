@@ -84,18 +84,34 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Melee")
 
 	void EndMeleeAttack(bool bWasCancelled = false);
-
+	UFUNCTION(BlueprintCallable, Category = "Melee|Phase")
+	void EnterAttackReovery();
+	/** 后摇段按下攻击：取消当前段，蓝图接下一段 */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Melee|Combo")
+	void OnRecoveryCancelIntoCombo();
+	UFUNCTION(BlueprintCallable, Category = "Melee|Phase")
+	bool IsInAttackActive() const;
+	UFUNCTION(BlueprintCallable, Category = "Melee|Phase")
+	bool IsInAttackRecovery() const;
+	/** 后摇阶段取消（闪避/格挡/下一段攻击前调用） */
+	UFUNCTION(BlueprintCallable, Category = "Melee|Phase")
+	bool TryCancelFromRecovery();
+	
 	virtual void OnMeleeMontageFinished(bool bWasCancelled);
 
 
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|Tags")
+	FGameplayTag AttackingActiveTag;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|Tags")
+	FGameplayTag AttackingRecoveryTag;
 private:
 
 	void ApplyAttackingTags() const;
 
 	void RemoveAttackingTags() const;
 
-
+	void EnterAttackActive();
+	void RemoveAllAttackingTags() const;
+	void StopCurrentAttackMontage(float BlendOutTime = 0.1f) const;
 
 };
-

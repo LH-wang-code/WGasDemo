@@ -33,7 +33,9 @@ UWGasMeleeAttack::UWGasMeleeAttack()
 {
 
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	AttackingActiveTag = WGasTags.State_Attacking_Active;
+	AttackingRecoveryTag = WGasTags.State_Attacking_Recovery;
 }
 
 void UWGasMeleeAttack::InputPressed(
@@ -42,6 +44,14 @@ void UWGasMeleeAttack::InputPressed(
 	const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
+	if (IsInAttackRecovery())
+	{
+		if (TryCancelFromRecovery())
+		{
+			OnRecoveryCancelIntoCombo();  // 蓝图里 ComboIdx++ 等
+		}
+		return;
+	}
 	if (AWGasCharacterHero* Character=Cast<AWGasCharacterHero>(GetWGasCharacterFromActorInfo()))
 	{
 		if (UGasInputBufferComponent*Buffer=Character->GetWGasInputBufferComponent())
@@ -81,7 +91,7 @@ void UWGasMeleeAttack::BeginMeleeAttack()
 			}
 		}
 	}
-	ApplyAttackingTags();
+	EnterAttackActive();
 	if (!bStopMovementOnAttack)
 	{
 		return;
@@ -101,6 +111,7 @@ void UWGasMeleeAttack::BeginMeleeAttack()
 void UWGasMeleeAttack::EndMeleeAttack(bool bWasCancelled)
 {
 	RemoveAttackingTags();
+	UnregisterDamageWindow();  
 	if (bWasCancelled)
 	{
 		K2_CancelAbility();
@@ -112,6 +123,45 @@ void UWGasMeleeAttack::EndMeleeAttack(bool bWasCancelled)
 	UnregisterDamageWindow();
 	
 }
+
+void UWGasMeleeAttack::EnterAttackReovery()
+{
+	UAbilitySystemComponent* ASC = GetWGasASCFromActorInfo();
+	if (!ASC) return;
+	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
+	if (Tags.State_Attacking_Active.IsValid())
+	{
+		ASC->RemoveLooseGameplayTag(Tags.State_Attacking_Active);
+	}
+	if (Tags.State_Attacking_Recovery.IsValid())
+	{
+		ASC->AddLooseGameplayTag(Tags.State_Attacking_Recovery);
+	}
+	UnregisterDamageWindow();
+}
+
+bool UWGasMeleeAttack::IsInAttackActive() const
+{
+	const UAbilitySystemComponent* ASC = GetWGasASCFromActorInfo();
+	if (!ASC) return false;
+	return ASC->HasMatchingGameplayTag(FWGasGameplayTags::Get().State_Attacking_Active);
+}
+
+bool UWGasMeleeAttack::IsInAttackRecovery() const
+{
+	const UAbilitySystemComponent* ASC = GetWGasASCFromActorInfo();
+	if (!ASC) return false;
+	return ASC->HasMatchingGameplayTag(FWGasGameplayTags::Get().State_Attacking_Recovery);
+}
+
+bool UWGasMeleeAttack::TryCancelFromRecovery()
+{
+	if (!IsInAttackRecovery())return false;
+	StopCurrentAttackMontage(0.1f);
+	EndMeleeAttack(true);  // true = K2_CancelAbility
+	return true;
+}
+
 void UWGasMeleeAttack::OnMeleeMontageFinished(bool bWasCancelled)
 {
 	EndMeleeAttack(bWasCancelled);
@@ -124,7 +174,10 @@ void UWGasMeleeAttack::ApplyAttackingTags() const
 	}
 	if (UAbilitySystemComponent* ASC = GetWGasASCFromActorInfo())
 	{
+		const FWGasGameplayTags& WGasTags=FWGasGameplayTags::Get();
+		
 		ASC->AddLooseGameplayTag(AttackingStateTag);
+		ASC->AddLooseGameplayTag(WGasTags.State_Invulnerable);
 	}
 }
 void UWGasMeleeAttack::RemoveAttackingTags() const
@@ -139,4 +192,57 @@ void UWGasMeleeAttack::RemoveAttackingTags() const
 	}
 }
 
+void UWGasMeleeAttack::EnterAttackActive()
+{
+	//进入攻击阶段，这时不可以被打断
+	UAbilitySystemComponent* ASC = GetWGasASCFromActorInfo();
+	if (!ASC) return;
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	if (AttackingStateTag.IsValid())
+	{
+		ASC->AddLooseGameplayTag(AttackingStateTag);
+	}
+	
+	if (WGasTags.State_Attacking_Active.IsValid())
+	{
+		ASC->AddLooseGameplayTag(WGasTags.State_Attacking_Active);
+	}
+	if (WGasTags.State_Attacking_Recovery.IsValid())
+	{
+		ASC->RemoveLooseGameplayTag(WGasTags.State_Attacking_Recovery);
+	}
+}
+
+void UWGasMeleeAttack::RemoveAllAttackingTags() const
+{
+	UAbilitySystemComponent* ASC = GetWGasASCFromActorInfo();
+	if (!ASC) return;
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	if (AttackingStateTag.IsValid())
+	{
+		ASC->RemoveLooseGameplayTag(AttackingStateTag);
+	}
+	if (WGasTags.State_Attacking_Active.IsValid())
+	{
+		ASC->RemoveLooseGameplayTag(WGasTags.State_Attacking_Active);
+	}
+	if (WGasTags.State_Attacking_Recovery.IsValid())
+	{
+		ASC->RemoveLooseGameplayTag(WGasTags.State_Attacking_Recovery);
+	}
+}
+
+void UWGasMeleeAttack::StopCurrentAttackMontage(float BlendOutTime) const
+{
+	if (const AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo())
+	{
+		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
+		{
+			if (UAnimInstance* Anim = Mesh->GetAnimInstance())
+			{
+				Anim->Montage_Stop(BlendOutTime);
+			}
+		}
+	}
+}
 

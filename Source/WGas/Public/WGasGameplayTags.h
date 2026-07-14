@@ -56,6 +56,9 @@ public:
 	
 	/*State*/
 	FGameplayTag State_Attacking_Lighting;
+	FGameplayTag State_Attacking_Active;
+	FGameplayTag State_Attacking_Recovery;
+	
 	FGameplayTag State_Dodge;
 	FGameplayTag State_Running;
 	FGameplayTag State_Boss_Attacking;
