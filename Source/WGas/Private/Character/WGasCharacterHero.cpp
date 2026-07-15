@@ -3,6 +3,7 @@
 
 #include "Character/WGasCharacterHero.h"
 
+#include "MotionWarpingComponent.h"
 #include "WGasGameplayTags.h"
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
 #include "AbilitySystem/WGasAttributeSet.h"
@@ -41,6 +42,8 @@ AWGasCharacterHero::AWGasCharacterHero()
 	Movement->bOrientRotationToMovement = false;
 	Movement->bUseControllerDesiredRotation = false;
 
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+	
 	ApplyMovementSpeed();
 }
 

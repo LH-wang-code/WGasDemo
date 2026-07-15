@@ -75,11 +75,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|LightAttack")
 
 	TArray<TObjectPtr<UAnimMontage>> LightAttackMontages;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|LockOn")
+	float LockOnAttackDistance = 150.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|LockOn")
+	FName LockOnWarpTargetName = FName("AttackTarget");
 	
 	UFUNCTION(BlueprintCallable, Category = "Melee")
 
 	void BeginMeleeAttack();
 
+	/** 锁敌时更新 Motion Warp 目标（每段 Montage 播前都应调用） */
+	UFUNCTION(BlueprintCallable, Category = "Melee|LockOn")
+	bool UpdateLockOnWarpTarget();
 
 	UFUNCTION(BlueprintCallable, Category = "Melee")
 
@@ -105,13 +114,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee|Tags")
 	FGameplayTag AttackingRecoveryTag;
 private:
-
-	void ApplyAttackingTags() const;
+	
 
 	void RemoveAttackingTags() const;
 
 	void EnterAttackActive();
 	void RemoveAllAttackingTags() const;
 	void StopCurrentAttackMontage(float BlendOutTime = 0.1f) const;
-
+	void ClearLockOnWarpTarget() const;
 };

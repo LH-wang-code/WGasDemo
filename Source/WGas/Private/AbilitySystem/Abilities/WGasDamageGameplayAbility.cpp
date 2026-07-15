@@ -2,6 +2,8 @@
 
 
 #include "AbilitySystem/Abilities/WGasDamageGameplayAbility.h"
+
+#include "MotionWarpingComponent.h"
 #include "GameplayAbilities/Public/AbilitySystemBlueprintLibrary.h"
 
 #include "WGasEffectTypes.h"

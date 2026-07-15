@@ -4,7 +4,10 @@
 #include "Character/WGasCombatComponent.h"
 
 #include "AbilitySystem/WGasAbilitySystemFunctionLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Character/WGasCharacterBase.h"
+#include "Character/WGasCharacterHero.h"
+#include "WGasGameplayTags.h"
 
 UWGasCombatComponent::UWGasCombatComponent()
 {
@@ -178,6 +181,19 @@ void UWGasCombatComponent::NotifyHit(AActor* HitActor)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[%s] Hit %s 但 Payload 无效或未开 DamageWindow"),
 			*GetNameSafe(GetOwner()), *HitActor->GetName());
+		return;
+	}
+
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	if (WGasTags.State_Invulnerable.IsValid() && WGasTags.State_Dodge.IsValid()
+		&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Invulnerable)
+		&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Dodge))
+	{
+		if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(HitActor))
+		{
+			Hero->OnDodgeIFrameSuccess();
+		}
+		HitActorsThisSwing.Add(HitActor);
 		return;
 	}
 

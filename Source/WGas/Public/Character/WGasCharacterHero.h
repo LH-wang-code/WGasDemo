@@ -16,6 +16,8 @@ class UCameraComponent;
 class USpringArmComponent;
 class UGasInputBufferComponent;
 class UWGasLockOnComponent;
+class UMotionWarpingComponent;
+
 UCLASS()
 class WGAS_API AWGasCharacterHero : public AWGasCharacterBase
 {
@@ -30,6 +32,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Combat")
 	UWGasLockOnComponent* GetLockOnComponent() const { return LockOnComponent; }
+
+	UFUNCTION(BlueprintPure, Category = "Motion Warping")
+	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void ToggleWalkRun();
 
@@ -40,6 +45,10 @@ public:
 
 	void UpdateRunningTag(const FVector2D& MoveInput);
 	void ClearRunningTag();
+
+	/** Boss 命中无敌帧时触发，蓝图里 Spawn PoseableMesh 残影 */
+	UFUNCTION(BlueprintImplementableEvent, Category = "Combat|Dodge")
+	void OnDodgeIFrameSuccess();
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
@@ -54,7 +63,12 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGameplayEffect> StaminaCostGE;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Motion Warping")
+	TObjectPtr<UMotionWarpingComponent> MotionWarpingComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UWGasLockOnComponent> LockOnComponent;
 	
 private:
 	void BindStaminaDepletedDelegate();
@@ -64,8 +78,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent>SpringArmComponent;
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UWGasLockOnComponent>LockOnComponent;
 	
 	bool bIsRunning = false;
 	bool bRunStaminaEffectsApplied = false;

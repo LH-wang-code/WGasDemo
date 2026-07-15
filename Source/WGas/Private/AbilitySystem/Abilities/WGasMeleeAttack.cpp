@@ -21,6 +21,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DrawDebugHelpers.h"
 #include "KismetTraceUtils.h"
+#include "MotionWarpingComponent.h"
 #include "WGas.h"
 #include "WGasGameplayTags.h"
 #include "Character/WGasCharacterHero.h"
@@ -48,7 +49,9 @@ void UWGasMeleeAttack::InputPressed(
 	{
 		if (TryCancelFromRecovery())
 		{
-			OnRecoveryCancelIntoCombo();  // 蓝图里 ComboIdx++ 等
+			// 接段前强制刷新 Warp，不依赖蓝图是否再调 BeginMeleeAttack
+			UpdateLockOnWarpTarget();
+			OnRecoveryCancelIntoCombo();
 		}
 		return;
 	}
@@ -73,24 +76,7 @@ void UWGasMeleeAttack::InputReleased(const FGameplayAbilitySpecHandle Handle,
 void UWGasMeleeAttack::BeginMeleeAttack()
 
 {
-	if (AWGasCharacterHero* Hero=Cast<AWGasCharacterHero>(GetWGasCharacterFromActorInfo()))
-	{
-		if (UWGasLockOnComponent* LockComp=Hero->FindComponentByClass<UWGasLockOnComponent>())
-		{
-			if (LockComp->IsLockedOn())
-			{
-				if (AActor* Target = LockComp->GetLockTarget())
-				{
-					const FVector ToTarget = LockComp->GetCurrentLockOnLocation() - Hero->GetActorLocation();
-					if (!ToTarget.IsNearlyZero())
-					{
-						Hero->SetActorRotation(FRotator(0.f, ToTarget.Rotation().Yaw, 0.f));
-
-					}
-				}
-			}
-		}
-	}
+	UpdateLockOnWarpTarget();
 	EnterAttackActive();
 	if (!bStopMovementOnAttack)
 	{
@@ -108,6 +94,74 @@ void UWGasMeleeAttack::BeginMeleeAttack()
 	}
 }
 
+bool UWGasMeleeAttack::UpdateLockOnWarpTarget()
+{
+	AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(GetWGasCharacterFromActorInfo());
+	if (!Hero)
+	{
+		return false;
+	}
+
+	UWGasLockOnComponent* LockComp = Hero->GetLockOnComponent();
+	if (!LockComp || !LockComp->IsLockedOn() || !LockComp->GetLockTarget())
+	{
+		return false;
+	}
+
+	const FVector LockPoint = LockComp->GetCurrentLockOnLocation();
+	FVector ToTarget = LockPoint - Hero->GetActorLocation();
+	ToTarget.Z = 0.f;
+
+	FRotator FaceRot = Hero->GetActorRotation();
+	if (!ToTarget.IsNearlyZero())
+	{
+		ToTarget.Normalize();
+		FaceRot = FRotator(0.f, ToTarget.Rotation().Yaw, 0.f);
+	}
+
+	const float CurrentDist = FVector::Dist2D(Hero->GetActorLocation(), LockPoint);
+	FVector WarpLoc = Hero->GetActorLocation();
+	if (CurrentDist > LockOnAttackDistance + 20.f)
+	{
+		WarpLoc = LockPoint - ToTarget * LockOnAttackDistance;
+	}
+	WarpLoc.Z = Hero->GetActorLocation().Z;
+
+	UMotionWarpingComponent* MWC = Hero->GetMotionWarpingComponent();
+	if (!MWC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[LockOnWarp] 无 MotionWarpingComponent"));
+		return false;
+	}
+
+	MWC->AddOrUpdateWarpTargetFromLocationAndRotation(LockOnWarpTargetName, WarpLoc, FaceRot);
+	Hero->SetActorRotation(FaceRot);
+
+	if (UCharacterMovementComponent* Move = Hero->GetCharacterMovement())
+	{
+		Move->bAllowPhysicsRotationDuringAnimRootMotion = true;
+	}
+
+#if !UE_BUILD_SHIPPING
+	UE_LOG(LogTemp, Log, TEXT("[LockOnWarp] ComboIdx=%d Dist=%.0f WarpLoc=%s"),
+		ComboIdx, CurrentDist, *WarpLoc.ToString());
+	DrawDebugSphere(Hero->GetWorld(), WarpLoc, 30.f, 12, FColor::Yellow, false, 1.5f);
+#endif
+
+	return true;
+}
+
+void UWGasMeleeAttack::ClearLockOnWarpTarget() const
+{
+	if (const AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo())
+	{
+		if (UMotionWarpingComponent* MWC = Character->FindComponentByClass<UMotionWarpingComponent>())
+		{
+			MWC->RemoveWarpTarget(LockOnWarpTargetName);
+		}
+	}
+}
+
 void UWGasMeleeAttack::EndMeleeAttack(bool bWasCancelled)
 {
 	RemoveAttackingTags();
@@ -121,7 +175,12 @@ void UWGasMeleeAttack::EndMeleeAttack(bool bWasCancelled)
 		K2_EndAbility();
 	}
 	UnregisterDamageWindow();
-	
+
+	// 接段取消时不删 Warp，下一刀还要用；整段结束再清
+	if (!bWasCancelled)
+	{
+		ClearLockOnWarpTarget();
+	}
 }
 
 void UWGasMeleeAttack::EnterAttackReovery()
@@ -165,20 +224,6 @@ bool UWGasMeleeAttack::TryCancelFromRecovery()
 void UWGasMeleeAttack::OnMeleeMontageFinished(bool bWasCancelled)
 {
 	EndMeleeAttack(bWasCancelled);
-}
-void UWGasMeleeAttack::ApplyAttackingTags() const
-{
-	if (!AttackingStateTag.IsValid())
-	{
-		return;
-	}
-	if (UAbilitySystemComponent* ASC = GetWGasASCFromActorInfo())
-	{
-		const FWGasGameplayTags& WGasTags=FWGasGameplayTags::Get();
-		
-		ASC->AddLooseGameplayTag(AttackingStateTag);
-		ASC->AddLooseGameplayTag(WGasTags.State_Invulnerable);
-	}
 }
 void UWGasMeleeAttack::RemoveAttackingTags() const
 {
