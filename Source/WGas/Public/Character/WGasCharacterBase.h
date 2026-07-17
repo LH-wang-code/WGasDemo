@@ -61,6 +61,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat|WeaponTrace")
 	void EndWeaponSweep();
 
+	/** AnimBP 闪避动画结束（如 0.58）时调用，结束 Dodge GA */
+	UFUNCTION(BlueprintCallable, Category = "Dodge")
+	void EndDodgeFromAnimation();
+
+	/** AnimBP 收盾/弹反动画结束时调用，结束 Block GA */
+	UFUNCTION(BlueprintCallable, Category = "Block")
+	void EndBlockFromAnimation();
+
 	virtual USkeletalMeshComponent* GetWeaponTraceMesh() const;
 
 protected:

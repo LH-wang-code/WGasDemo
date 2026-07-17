@@ -70,6 +70,8 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("State.Dodge"), FString("State.Dodge"));
 	GameplayTags.State_Running = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Running"), FString("State.Running"));
+	GameplayTags.State_Block = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Block"), FString("State.Block"));
 	GameplayTags.State_Invulnerable = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Invulnerable"), FString("State.Invulnerable"));
 	GameplayTags.State_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(

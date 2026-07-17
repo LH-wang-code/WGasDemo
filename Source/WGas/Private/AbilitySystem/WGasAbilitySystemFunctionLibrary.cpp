@@ -46,6 +46,11 @@ void UWGasAbilitySystemFunctionLibrary::ApplyDamageEffectParams(const FDamageEff
 		return;
 	}
 	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	if (WGasTags.State_Invulnerable.IsValid()
+		&& Params.TargetAbilitySystemComponent->HasMatchingGameplayTag(WGasTags.State_Invulnerable))
+	{
+		return;
+	}
 	FGameplayEffectSpecHandle SpecHandle = Params.SourceAbilitySystemComponent->MakeOutgoingSpec(
 		Params.DamageGameplayEffectClass, 1.f, Params.SourceAbilitySystemComponent->MakeEffectContext());
 

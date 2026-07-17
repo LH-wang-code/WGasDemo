@@ -7,6 +7,8 @@
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
 #include "AbilitySystem/WGasAttributeSet.h"
 #include "AbilitySystem/Abilities/WGasDamageGameplayAbility.h"
+#include "AbilitySystem/Abilities/WGasBlock.h"
+#include "AbilitySystem/Abilities/WGasDodge.h"
 #include "Abilities/GameplayAbility.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
@@ -126,3 +128,47 @@ USkeletalMeshComponent* AWGasCharacterBase::GetWeaponTraceMesh() const
 	return GetMesh();
 }
 
+void AWGasCharacterBase::EndDodgeFromAnimation()
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC)
+	{
+		return;
+	}
+
+	for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+	{
+		if (!Spec.IsActive() || !Spec.Ability)
+		{
+			continue;
+		}
+
+		if (!Spec.Ability->GetClass()->IsChildOf(UWGasDodge::StaticClass()))
+		{
+			continue;
+		}
+
+		if (UGameplayAbility* Instance = Spec.GetPrimaryInstance())
+		{
+			if (UWGasDodge* Dodge = Cast<UWGasDodge>(Instance))
+			{
+				Dodge->EndDodgeActivePhase();
+				return;
+			}
+		}
+	}
+}
+
+void AWGasCharacterBase::EndBlockFromAnimation()
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (!ASC)
+	{
+		return;
+	}
+
+	if (UWGasBlock* Block = UWGasBlock::GetActiveBlock(ASC))
+	{
+		Block->EndBlockActivePhase();
+	}
+}

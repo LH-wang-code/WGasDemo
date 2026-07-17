@@ -61,6 +61,7 @@ public:
 	
 	FGameplayTag State_Dodge;
 	FGameplayTag State_Running;
+	FGameplayTag State_Block;
 	FGameplayTag State_Boss_Attacking;
 	FGameplayTag State_Invulnerable;
 	FGameplayTag State_Boss_PoiseBroken;

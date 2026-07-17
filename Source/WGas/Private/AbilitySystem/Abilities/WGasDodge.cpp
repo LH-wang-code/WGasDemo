@@ -2,9 +2,12 @@
 
 #include "AbilitySystem/Abilities/WGasDodge.h"
 
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/WGasAnimLayerInterface.h"
 #include "Character/WGasCharacterBase.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "TimerManager.h"
 #include "WGasGameplayTags.h"
 
 UWGasDodge::UWGasDodge()
@@ -33,7 +36,6 @@ FVector UWGasDodge::GetDodgeDirection(const AWGasCharacterBase* Character) const
 
 	if (const UCharacterMovementComponent* MoveComp = Character->GetCharacterMovement())
 	{
-		// 优先用当前帧待处理的移动输入（与 WASD 一致）
 		DodgeDir = MoveComp->GetPendingInputVector();
 		if (DodgeDir.IsNearlyZero())
 		{
@@ -58,59 +60,207 @@ FVector UWGasDodge::GetDodgeDirection(const AWGasCharacterBase* Character) const
 	return DodgeDir;
 }
 
-UAnimMontage* UWGasDodge::GetDodgeMontageForDirection(const FVector& DodgeDir,
-	const AWGasCharacterBase* Character) const
+void UWGasDodge::ApplyDodgeMovementBoost(AWGasCharacterBase* Character, const FVector& DodgeDir)
 {
-	auto ResolveMontage = [](UAnimMontage* Preferred, UAnimMontage* FallbackA, UAnimMontage* FallbackB)
+	if (!Character || bDodgeMovementBoostApplied || !bBoostDodgeMovementSpeed)
 	{
-		if (Preferred)
-		{
-			return Preferred;
-		}
-		return FallbackA ? FallbackA : FallbackB;
-	};
+		return;
+	}
 
+	CachedDodgeDirection = DodgeDir;
+	bDodgeMovementBoostApplied = true;
+
+	if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+	{
+		CachedMaxWalkSpeed = Movement->MaxWalkSpeed;
+		Movement->MaxWalkSpeed = DodgeMaxWalkSpeed;
+	}
+
+	if (bApplyDodgeDirectionInput)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			World->GetTimerManager().SetTimer(
+				DodgeMovementTickHandle,
+				this,
+				&UWGasDodge::TickDodgeMovement,
+				0.016f,
+				true);
+		}
+	}
+}
+
+void UWGasDodge::RestoreDodgeMovementBoost(AWGasCharacterBase* Character)
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(DodgeMovementTickHandle);
+	}
+
+	if (!Character || !bDodgeMovementBoostApplied)
+	{
+		return;
+	}
+
+	if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+	{
+		Movement->MaxWalkSpeed = CachedMaxWalkSpeed;
+
+		if (bStopVelocityOnDodgeEnd && Movement->IsMovingOnGround())
+		{
+			Movement->StopMovementImmediately();
+		}
+	}
+
+	bDodgeMovementBoostApplied = false;
+	CachedDodgeDirection = FVector::ZeroVector;
+	CachedMaxWalkSpeed = 0.f;
+}
+
+void UWGasDodge::EnableDodgeRootMotion(AWGasCharacterBase* Character)
+{
+	if (!bUseDodgeAnimationRootMotion || bRootMotionModeCached || !Character)
+	{
+		return;
+	}
+
+	USkeletalMeshComponent* Mesh = Character->GetMesh();
+	if (!Mesh)
+	{
+		return;
+	}
+
+	if (UAnimInstance* Anim = Mesh->GetAnimInstance())
+	{
+		CachedRootMotionMode = Anim->RootMotionMode;
+		bRootMotionModeCached = true;
+		Anim->SetRootMotionMode(ERootMotionMode::RootMotionFromEverything);
+	}
+}
+
+void UWGasDodge::RestoreDodgeRootMotion(AWGasCharacterBase* Character)
+{
+	if (!bRootMotionModeCached)
+	{
+		return;
+	}
+
+	if (Character)
+	{
+		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
+		{
+			if (UAnimInstance* Anim = Mesh->GetAnimInstance())
+			{
+				Anim->SetRootMotionMode(CachedRootMotionMode);
+			}
+		}
+	}
+
+	bRootMotionModeCached = false;
+	CachedRootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
+}
+
+void UWGasDodge::TickDodgeMovement()
+{
+	if (bDodgeEndHandled)
+	{
+		return;
+	}
+
+	if (AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo())
+	{
+		if (!CachedDodgeDirection.IsNearlyZero())
+		{
+			Character->AddMovementInput(CachedDodgeDirection, 1.f);
+		}
+	}
+}
+
+void UWGasDodge::FinishDodge()
+{
+	if (bDodgeEndHandled)
+	{
+		return;
+	}
+	bDodgeEndHandled = true;
+
+	AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo();
+	SetDodgeAnimationStateOnCharacter(Character, false);
+	RestoreDodgeMovementBoost(Character);
+	RestoreDodgeRootMotion(Character);
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		if (FWGasGameplayTags::Get().State_Dodge.IsValid())
+		{
+			ASC->RemoveLooseGameplayTag(FWGasGameplayTags::Get().State_Dodge);
+		}
+	}
+
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
+}
+
+void UWGasDodge::EndAbility(
+	const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo,
+	const bool bReplicateEndAbility,
+	const bool bWasCancelled)
+{
+	// Cancellation can bypass the AnimBP callback. Always return the AnimInstance
+	// to its previous root-motion mode and clear the movement override.
+	if (!bDodgeEndHandled)
+	{
+		bDodgeEndHandled = true;
+
+		AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo();
+		SetDodgeAnimationStateOnCharacter(Character, false);
+		RestoreDodgeMovementBoost(Character);
+		RestoreDodgeRootMotion(Character);
+
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			const FGameplayTag& DodgeTag = FWGasGameplayTags::Get().State_Dodge;
+			if (DodgeTag.IsValid())
+			{
+				ASC->RemoveLooseGameplayTag(DodgeTag);
+			}
+		}
+	}
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UWGasDodge::EndDodgeActivePhase()
+{
+	FinishDodge();
+}
+
+void UWGasDodge::EndDodgeMovementPhase()
+{
+	RestoreDodgeMovementBoost(GetWGasCharacterFromActorInfo());
+}
+
+void UWGasDodge::SetDodgeAnimationStateOnCharacter(AWGasCharacterBase* Character, const bool bIsDodging) const
+{
 	if (!Character)
 	{
-		return DodgeBackMontage;
+		return;
 	}
 
-	const float CharYaw = Character->GetActorRotation().Yaw;
-	const float DodgeYaw = DodgeDir.Rotation().Yaw;
-	const float Delta = FMath::FindDeltaAngleDegrees(CharYaw, DodgeYaw);
+	USkeletalMeshComponent* Mesh = Character->GetMesh();
+	if (!Mesh)
+	{
+		return;
+	}
 
-	// 8 方向，每扇区 45°（相对角色朝向）
-	static constexpr float SectorHalfAngle = 22.5f;
+	UAnimInstance* Anim = Mesh->GetAnimInstance();
+	if (!Anim || !Anim->GetClass()->ImplementsInterface(UWGasAnimLayerInterface::StaticClass()))
+	{
+		return;
+	}
 
-	if (Delta > -SectorHalfAngle && Delta <= SectorHalfAngle)
-	{
-		return DodgeForwardMontage;
-	}
-	if (Delta > SectorHalfAngle && Delta <= 45.f + SectorHalfAngle)
-	{
-		return ResolveMontage(DodgeForwardRightMontage, DodgeForwardMontage, DodgeRightMontage);
-	}
-	if (Delta > 45.f + SectorHalfAngle && Delta <= 90.f + SectorHalfAngle)
-	{
-		return DodgeRightMontage;
-	}
-	if (Delta > 90.f + SectorHalfAngle && Delta <= 135.f + SectorHalfAngle)
-	{
-		return ResolveMontage(DodgeBackRightMontage, DodgeBackMontage, DodgeRightMontage);
-	}
-	if (Delta > -45.f - SectorHalfAngle && Delta <= -SectorHalfAngle)
-	{
-		return ResolveMontage(DodgeForwardLeftMontage, DodgeForwardMontage, DodgeLeftMontage);
-	}
-	if (Delta > -90.f - SectorHalfAngle && Delta <= -45.f - SectorHalfAngle)
-	{
-		return DodgeLeftMontage;
-	}
-	if (Delta > -135.f - SectorHalfAngle && Delta <= -90.f - SectorHalfAngle)
-	{
-		return ResolveMontage(DodgeBackLeftMontage, DodgeBackMontage, DodgeLeftMontage);
-	}
-	return DodgeBackMontage;
+	IWGasAnimLayerInterface::Execute_SetDodgeAnimationState(Anim, bIsDodging);
 }
 
 void UWGasDodge::ActivateAbility(
@@ -134,7 +284,6 @@ void UWGasDodge::ActivateAbility(
 
 	bDodgeEndHandled = false;
 
-	// 先取方向再 StopMovement，避免清掉输入后方向变成默认后撤
 	const FVector DodgeDir = GetDodgeDirection(Character);
 
 	if (UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
@@ -145,63 +294,10 @@ void UWGasDodge::ActivateAbility(
 		}
 	}
 
-	if (UCharacterMovementComponent* Movement = Character->GetCharacterMovement())
+	EnableDodgeRootMotion(Character);
+	if (!bUseDodgeAnimationRootMotion)
 	{
-		Movement->StopMovementImmediately();
+		ApplyDodgeMovementBoost(Character, DodgeDir);
 	}
-
-	if (bUseLaunchImpulse)
-	{
-		PerformDodge();
-	}
-
-	UAnimMontage* MontageToPlay = GetDodgeMontageForDirection(DodgeDir, Character);
-	if (!MontageToPlay)
-	{
-		OnDodgeMontageEnded();
-		return;
-	}
-
-	UAbilityTask_PlayMontageAndWait* MontageTask =
-		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-			this,
-			TEXT("DodgeMontageTask"),
-			MontageToPlay,
-			1.0f,
-			NAME_None);
-	MontageTask->OnCompleted.AddDynamic(this, &UWGasDodge::OnDodgeMontageEnded);
-	MontageTask->OnCancelled.AddDynamic(this, &UWGasDodge::OnDodgeMontageEnded);
-	MontageTask->OnInterrupted.AddDynamic(this, &UWGasDodge::OnDodgeMontageEnded);
-	MontageTask->ReadyForActivation();
-}
-
-void UWGasDodge::OnDodgeMontageEnded()
-{
-	if (bDodgeEndHandled)
-	{
-		return;
-	}
-	bDodgeEndHandled = true;
-
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		if (FWGasGameplayTags::Get().State_Dodge.IsValid())
-		{
-			ASC->RemoveLooseGameplayTag(FWGasGameplayTags::Get().State_Dodge);
-		}
-	}
-
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
-}
-
-void UWGasDodge::PerformDodge()
-{
-	AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo();
-	if (!Character)
-	{
-		return;
-	}
-
-	const FVector DodgeDir = GetDodgeDirection(Character);
-	Character->LaunchCharacter(DodgeDir * DodgeLaunchPower, true, true);
+	SetDodgeAnimationStateOnCharacter(Character, true);
 }

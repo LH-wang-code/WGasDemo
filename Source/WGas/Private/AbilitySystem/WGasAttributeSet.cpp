@@ -56,10 +56,15 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		 Data.EvaluatedData.Magnitude);
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		//GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Red, FString::Printf(TEXT("Health: %f"), GetHealth()));
+		const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+		UAbilitySystemComponent* TargetASC = Props.TargetASC ? Props.TargetASC : GetOwningAbilitySystemComponent();
+		if (WGasTags.State_Invulnerable.IsValid() && TargetASC
+			&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Invulnerable)
+			&& Data.EvaluatedData.Magnitude < 0.f)
+		{
+			SetHealth(GetHealth() - Data.EvaluatedData.Magnitude);
+		}
 		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
-		UE_LOG(LogTemp, Warning, TEXT("Changed Health is 111111111111"));
-
 	}
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
@@ -78,7 +83,15 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	
 	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
-		
+		const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+		UAbilitySystemComponent* TargetASC = Props.TargetASC ? Props.TargetASC : GetOwningAbilitySystemComponent();
+		if (WGasTags.State_Invulnerable.IsValid() && TargetASC
+			&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Invulnerable))
+		{
+			SetIncomingDamage(0.f);
+			return;
+		}
+
 		const float Damage=GetIncomingDamage();
 		SetIncomingDamage(0.f);
 		const float NewHealth = GetHealth() - Damage;

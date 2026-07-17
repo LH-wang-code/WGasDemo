@@ -20,10 +20,16 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	const FGameplayTagContainer* TargetTags=Spec.CapturedTargetTags.GetAggregatedTags();
 	const FGameplayTag& PoiseBrokenTag=FWGasGameplayTags::Get().State_Boss_PoiseBroken;
 
-	const FGameplayTag& InvincibleTag = FWGasGameplayTags::Get().State_Boss_Invulnerable;
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
 	if (UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent())
 	{
-		if (InvincibleTag.IsValid() && TargetASC->HasMatchingGameplayTag(InvincibleTag))
+		if (WGasTags.State_Boss_Invulnerable.IsValid()
+			&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Boss_Invulnerable))
+		{
+			return;
+		}
+		if (WGasTags.State_Invulnerable.IsValid()
+			&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Invulnerable))
 		{
 			return;
 		}

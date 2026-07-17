@@ -14,6 +14,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "WGasGameplayTags.h"
+#include "AbilitySystem/Abilities/WGasBlock.h"
 #include "Character/WGasLockOnComponent.h"
 #include "UI/Widgets/StaminaBarComponent.h"
 #include "UI/Widgets/WGasStaminaBarWidget.h"
@@ -25,7 +26,20 @@ void AWGasPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
 	if (UWGasAbilitySystemComponent* ASC = GetASC())
 	{
-		if (ASC->HasMatchingGameplayTag(FWGasGameplayTags::Get().Player_Block_InputPressed))
+		const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+		if (WGasTags.InputTag_LMB.IsValid()
+			&& InputTag.MatchesTagExact(WGasTags.InputTag_LMB)
+			&& WGasTags.State_Block.IsValid()
+			&& ASC->HasMatchingGameplayTag(WGasTags.State_Block))
+		{
+			if (UWGasBlock* Block = UWGasBlock::GetActiveBlock(ASC))
+			{
+				Block->TryParryFromAttackInput();
+				return;
+			}
+		}
+
+		if (ASC->HasMatchingGameplayTag(WGasTags.Player_Block_InputPressed))
 		{
 			return;
 		}
@@ -38,7 +52,16 @@ void AWGasPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
 	if (UWGasAbilitySystemComponent* ASC = GetASC())
 	{
-		if (ASC->HasMatchingGameplayTag(FWGasGameplayTags::Get().Player_Block_InputHeld))
+		const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+		if (WGasTags.InputTag_LMB.IsValid()
+			&& InputTag.MatchesTagExact(WGasTags.InputTag_LMB)
+			&& WGasTags.State_Block.IsValid()
+			&& ASC->HasMatchingGameplayTag(WGasTags.State_Block))
+		{
+			return;
+		}
+
+		if (ASC->HasMatchingGameplayTag(WGasTags.Player_Block_InputHeld))
 		{
 			return;
 		}
@@ -226,14 +249,19 @@ void AWGasPlayerController::TeardownStaminaBar()
 
 void AWGasPlayerController::Move(const FInputActionValue& InputActionValue)
 {
+	bool bIsDodging = false;
 	if (UWGasAbilitySystemComponent* ASC = GetASC())
 	{
 		const FWGasGameplayTags& GameplayTags = FWGasGameplayTags::Get();
-		if (ASC->HasMatchingGameplayTag(GameplayTags.State_Attacking_Lighting)
-			|| ASC->HasMatchingGameplayTag(GameplayTags.State_Dodge))
+		if (ASC->HasMatchingGameplayTag(GameplayTags.State_Attacking_Lighting))
 		{
 			return;
 		}
+
+		// Keep sampling WASD while dodging. Root motion still owns the actual
+		// dodge displacement, while this input carries naturally into locomotion
+		// when the dodge ends.
+		bIsDodging = ASC->HasMatchingGameplayTag(GameplayTags.State_Dodge);
 	}
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
 	const FRotator Rotation = GetControlRotation();
@@ -248,7 +276,7 @@ void AWGasPlayerController::Move(const FInputActionValue& InputActionValue)
 	if (ACharacter* GASCharacter = Cast<ACharacter>(GetPawn()))
 	{
 		// 锁定时相机朝 Boss，但不让角色跟着相机转；攻击时在 BeginMeleeAttack 里再转向
-		if (InputAxisVector.Y > KINDA_SMALL_NUMBER && !bLockOnActive)
+		if (InputAxisVector.Y > KINDA_SMALL_NUMBER && !bLockOnActive && !bIsDodging)
 		{
 			const FRotator TargetRotation(0.f, Rotation.Yaw, 0.f);
 			const FRotator NewRotation = FMath::RInterpConstantTo(
@@ -262,9 +290,12 @@ void AWGasPlayerController::Move(const FInputActionValue& InputActionValue)
 		GASCharacter->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		GASCharacter->AddMovementInput(RightDirection, InputAxisVector.X);
 	}
-	if (AWGasCharacterHero* HeroPawn = Cast<AWGasCharacterHero>(GetPawn()))
+	if (!bIsDodging)
 	{
-		HeroPawn->UpdateRunningTag(InputAxisVector);
+		if (AWGasCharacterHero* HeroPawn = Cast<AWGasCharacterHero>(GetPawn()))
+		{
+			HeroPawn->UpdateRunningTag(InputAxisVector);
+		}
 	}
 }
 

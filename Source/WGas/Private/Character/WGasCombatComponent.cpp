@@ -185,9 +185,8 @@ void UWGasCombatComponent::NotifyHit(AActor* HitActor)
 	}
 
 	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
-	if (WGasTags.State_Invulnerable.IsValid() && WGasTags.State_Dodge.IsValid()
-		&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Invulnerable)
-		&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Dodge))
+	if (WGasTags.State_Invulnerable.IsValid()
+		&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Invulnerable))
 	{
 		if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(HitActor))
 		{

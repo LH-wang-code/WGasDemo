@@ -2,56 +2,80 @@
 
 #pragma once
 
+#include "Animation/AnimTypes.h"
 #include "CoreMinimal.h"
 #include "AbilitySystem/Abilities/WGasGameplayAbility.h"
 #include "WGasDodge.generated.h"
 
 class AWGasCharacterBase;
-class UAnimMontage;
+
 UCLASS()
 class WGAS_API UWGasDodge : public UWGasGameplayAbility
 {
 	GENERATED_BODY()
+
 public:
 	UWGasDodge();
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	virtual void ActivateAbility(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		const FGameplayEventData* TriggerEventData) override;
+
+	virtual void EndAbility(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		bool bReplicateEndAbility,
+		bool bWasCancelled) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Dodge")
+	void EndDodgeActivePhase();
+
+	UFUNCTION(BlueprintCallable, Category = "Dodge")
+	void EndDodgeMovementPhase();
+
+protected:
+	void FinishDodge();
+	void ApplyDodgeMovementBoost(AWGasCharacterBase* Character, const FVector& DodgeDir);
+	void RestoreDodgeMovementBoost(AWGasCharacterBase* Character);
+	void EnableDodgeRootMotion(AWGasCharacterBase* Character);
+	void RestoreDodgeRootMotion(AWGasCharacterBase* Character);
+	void SetDodgeAnimationStateOnCharacter(AWGasCharacterBase* Character, bool bIsDodging) const;
 
 	UFUNCTION()
-	void OnDodgeMontageEnded();
-protected:
-	void PerformDodge();
+	void TickDodgeMovement();
 
 private:
 	FVector GetDodgeDirection(const AWGasCharacterBase* Character) const;
-	UAnimMontage* GetDodgeMontageForDirection(const FVector& DodgeDir, const AWGasCharacterBase* Character) const;
 
-	/** 防止 OnCompleted / OnInterrupted 重复 End */
 	bool bDodgeEndHandled = false;
 
-public:
-	/** 根运动 Montage 位移时请保持 false，避免和 LaunchCharacter 叠加 */
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge")
-	bool bUseLaunchImpulse = false;
+	FTimerHandle DodgeMovementTickHandle;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge")
-	float DodgeLaunchPower = 1200.0f;
+	FVector CachedDodgeDirection = FVector::ZeroVector;
+	float CachedMaxWalkSpeed = 0.f;
+	bool bDodgeMovementBoostApplied = false;
+	TEnumAsByte<ERootMotionMode::Type> CachedRootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
+	bool bRootMotionModeCached = false;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge|8-Way")
-	TObjectPtr<UAnimMontage> DodgeForwardMontage;
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge|8-Way")
-	TObjectPtr<UAnimMontage> DodgeForwardRightMontage;
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge|8-Way")
-	TObjectPtr<UAnimMontage> DodgeRightMontage;
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge|8-Way")
-	TObjectPtr<UAnimMontage> DodgeBackRightMontage;
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge|8-Way")
-	TObjectPtr<UAnimMontage> DodgeBackMontage;
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge|8-Way")
-	TObjectPtr<UAnimMontage> DodgeBackLeftMontage;
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge|8-Way")
-	TObjectPtr<UAnimMontage> DodgeLeftMontage;
-	UPROPERTY(EditDefaultsOnly, Category = "Dodge|8-Way")
-	TObjectPtr<UAnimMontage> DodgeForwardLeftMontage;
+	/**
+	 * The dodge Blend Space contains root-motion sequences. Enable extraction only
+	 * while this ability is active, then restore the AnimBP's normal mode for WASD.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Dodge|Root Motion")
+	bool bUseDodgeAnimationRootMotion = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dodge|Movement")
+	bool bBoostDodgeMovementSpeed = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dodge|Movement", meta = (ClampMin = "100.0", EditCondition = "bBoostDodgeMovementSpeed"))
+	float DodgeMaxWalkSpeed = 900.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dodge|Movement", meta = (EditCondition = "bBoostDodgeMovementSpeed"))
+	bool bApplyDodgeDirectionInput = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Dodge|Movement")
+	bool bStopVelocityOnDodgeEnd = true;
 };
-
-
