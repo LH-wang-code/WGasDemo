@@ -4,6 +4,7 @@
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
 
 #include "AbilitySystem/Abilities/WGasGameplayAbility.h"
+#include "AbilitySystem/Abilities/WGasMeleeAttack.h"
 #include "WGasGameplayTags.h"
 
 void UWGasAbilitySystemComponent::AbilityActorInfoSet()
@@ -79,13 +80,31 @@ void UWGasAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 	FScopedAbilityListLock ActiveScopeLock(*this);
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
+		if (!AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
-			if (!AbilitySpec.IsActive())
-			{
-				TryActivateAbility(AbilitySpec.Handle);
-			}
+			continue;
 		}
+
+		if (AbilitySpec.IsActive())
+		{
+			if (Tags.InputTag_LMB.IsValid()
+				&& InputTag.MatchesTagExact(Tags.InputTag_LMB)
+				&& UWGasMeleeAttack::IsStaleActiveAttack(this))
+			{
+				UWGasMeleeAttack::SanitizeStaleAttackState(this);
+				if (!AbilitySpec.IsActive())
+				{
+					TryActivateAbility(AbilitySpec.Handle);
+				}
+			}
+			continue;
+		}
+
+		if (Tags.InputTag_LMB.IsValid() && InputTag.MatchesTagExact(Tags.InputTag_LMB))
+		{
+			UWGasMeleeAttack::SanitizeStaleAttackState(this);
+		}
+		TryActivateAbility(AbilitySpec.Handle);
 	}
 }
 

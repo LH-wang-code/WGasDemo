@@ -88,6 +88,10 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 	//Event
 	GameplayTags.Event_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Event.Boss.PoiseBroken"), FString("Event.Boss.PoiseBroken"));
+	GameplayTags.Event_Attack_Active = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Event.Attack.Active"), FString("Event.Attack.Active"));
+	GameplayTags.Event_Attack_Recovery = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Event.Attack.Recovery"), FString("Event.Attack.Recovery"));
 
 	//Debuff
 	GameplayTags.Debuff_Boss_Weak = UGameplayTagsManager::Get().AddNativeGameplayTag(

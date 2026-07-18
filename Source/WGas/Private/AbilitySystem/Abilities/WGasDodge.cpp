@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 #include "WGasGameplayTags.h"
+#include "AbilitySystem/Abilities/WGasMeleeAttack.h"
 
 UWGasDodge::UWGasDodge()
 {
@@ -16,13 +17,12 @@ UWGasDodge::UWGasDodge()
 
 	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
 	if (Tags.State_Dodge.IsValid())
-	{
 		ActivationBlockedTags.AddTag(Tags.State_Dodge);
-	}
-	if (Tags.State_Attacking_Lighting.IsValid())
-	{
-		ActivationBlockedTags.AddTag(Tags.State_Attacking_Lighting);
-	}
+	
+	if (Tags.State_Block.IsValid())
+		ActivationBlockedTags.AddTag(Tags.State_Block);
+	if (Tags.State_Attacking_Active.IsValid())
+		ActivationBlockedTags.AddTag(Tags.State_Attacking_Active);
 }
 
 FVector UWGasDodge::GetDodgeDirection(const AWGasCharacterBase* Character) const
@@ -269,6 +269,14 @@ void UWGasDodge::ActivateAbility(
 	const FGameplayAbilityActivationInfo ActivationInfo,
 	const FGameplayEventData* TriggerEventData)
 {
+
+	if (UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get())
+	{
+		if (UWGasMeleeAttack* Melee = UWGasMeleeAttack::GetActiveMeleeAttack(ASC))
+		{
+			Melee->TryCancelFromCancelablePhase();
+		}
+	}
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);

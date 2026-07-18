@@ -74,7 +74,8 @@ public:
 	 * Event
 	 */
 	FGameplayTag Event_Boss_PoiseBroken;
-
+	FGameplayTag Event_Attack_Active;
+	FGameplayTag Event_Attack_Recovery;
 
 	/*
 	 * Debuff

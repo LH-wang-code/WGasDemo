@@ -15,6 +15,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "WGasGameplayTags.h"
 #include "AbilitySystem/Abilities/WGasBlock.h"
+#include "AbilitySystem/Abilities/WGasMeleeAttack.h"
 #include "Character/WGasLockOnComponent.h"
 #include "UI/Widgets/StaminaBarComponent.h"
 #include "UI/Widgets/WGasStaminaBarWidget.h"
@@ -249,21 +250,31 @@ void AWGasPlayerController::TeardownStaminaBar()
 
 void AWGasPlayerController::Move(const FInputActionValue& InputActionValue)
 {
+	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
 	bool bIsDodging = false;
 	if (UWGasAbilitySystemComponent* ASC = GetASC())
 	{
 		const FWGasGameplayTags& GameplayTags = FWGasGameplayTags::Get();
-		if (ASC->HasMatchingGameplayTag(GameplayTags.State_Attacking_Lighting))
+		UWGasMeleeAttack::SanitizeStaleAttackState(ASC);
+
+		// 后摇有移动输入：淡出攻击 Montage，让走/跑 Locomotion 接管
+		if (GameplayTags.State_Attacking_Recovery.IsValid()
+			&& ASC->HasMatchingGameplayTag(GameplayTags.State_Attacking_Recovery)
+			&& !InputAxisVector.IsNearlyZero())
+		{
+			if (UWGasMeleeAttack* Melee = UWGasMeleeAttack::GetActiveMeleeAttack(ASC))
+			{
+				Melee->CancelAttackForLocomotion();
+			}
+		}
+
+		if (ASC->HasMatchingGameplayTag(GameplayTags.State_Attacking_Active))
 		{
 			return;
 		}
-
-		// Keep sampling WASD while dodging. Root motion still owns the actual
-		// dodge displacement, while this input carries naturally into locomotion
-		// when the dodge ends.
+		
 		bIsDodging = ASC->HasMatchingGameplayTag(GameplayTags.State_Dodge);
 	}
-	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
 	const FRotator Rotation = GetControlRotation();
 	const FRotator YawRotation(0.0f, Rotation.Yaw, 0.0f);
 
@@ -332,8 +343,9 @@ void AWGasPlayerController::Jump(const FInputActionValue& InputActionValue)
 	if (UWGasAbilitySystemComponent* ASC = GetASC())
 	{
 		const FWGasGameplayTags& GameplayTags = FWGasGameplayTags::Get();
-		if (ASC->HasMatchingGameplayTag(GameplayTags.State_Attacking_Lighting)
-			|| ASC->HasMatchingGameplayTag(GameplayTags.State_Dodge))
+		if (ASC->HasMatchingGameplayTag(GameplayTags.State_Attacking_Active)
+			|| ASC->HasMatchingGameplayTag(GameplayTags.State_Dodge)
+			|| ASC->HasMatchingGameplayTag(GameplayTags.State_Block))
 		{
 			return;
 		}
