@@ -47,8 +47,16 @@ public:
 	void ClearRunningTag();
 
 	/** Boss 命中无敌帧时触发，蓝图里 Spawn PoseableMesh 残影 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "Combat|Dodge")
+	UFUNCTION(BlueprintNativeEvent, Category = "Combat|Dodge")
 	void OnDodgeIFrameSuccess();
+
+	//气势
+	UFUNCTION(BlueprintCallable, Category = "Momentum")
+	void GrantMomentum(float Amount);
+	UFUNCTION(BlueprintCallable, Category = "Momentum")
+	void NotifyParrySuccess();
+
+	
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
@@ -57,6 +65,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RunSpeed = 600.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Momentum")
+	float MomentumGainOnPerfectDodge = 34.f;
+	UPROPERTY(EditDefaultsOnly, Category = "Momentum")
+	float MomentumGainOnParrySuccess = 34.f;
 	void ApplyMovementSpeed();
 
 	TObjectPtr<UGasInputBufferComponent>InputBufferComponent;

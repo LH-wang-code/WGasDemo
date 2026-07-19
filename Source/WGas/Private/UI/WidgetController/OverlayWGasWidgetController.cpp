@@ -12,6 +12,8 @@ void UOverlayWGasWidgetController::BroadcastInitialValues()
 	OnMaxHealthChanged.Broadcast(GetWGasAS()->GetMaxHealth());
 	OnManaChanged.Broadcast(GetWGasAS()->GetMana());
 	OnMaxManaChanged.Broadcast(GetWGasAS()->GetMaxMana());
+	OnMomentumChanged.Broadcast(GetWGasAS()->GetMomentum());
+	OnMaxMomentumChanged.Broadcast(GetWGasAS()->GetMaxMomentum());
 }
 
 void UOverlayWGasWidgetController::BindCallbacksToDependencies()
@@ -32,14 +34,22 @@ void UOverlayWGasWidgetController::BindCallbacksToDependencies()
 	[this](const FOnAttributeChangeData& Data)
 	{
 		OnManaChanged.Broadcast(Data.NewValue);
-	}
-);
+	});
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(GetWGasAS()->GetMaxManaAttribute()).AddLambda(
 		[this](const FOnAttributeChangeData& Data)
 		{
 			OnMaxManaChanged.Broadcast(Data.NewValue);
-		}
-	);
+		});
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(GetWGasAS()->GetMomentumAttribute()).AddLambda(
+	[this](const FOnAttributeChangeData& Data)
+	{
+		OnMomentumChanged.Broadcast(Data.NewValue);
+	});
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(GetWGasAS()->GetMaxMomentumAttribute()).AddLambda(
+	[this](const FOnAttributeChangeData& Data)
+	{
+		OnMaxMomentumChanged.Broadcast(Data.NewValue);
+	});
 }
 
 void UOverlayWGasWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const

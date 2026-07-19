@@ -15,7 +15,10 @@ UWGasAttributeSet::UWGasAttributeSet()
 	TagsToAttributes.Add(GameplayTags.Attribute_Vital_MaxMana,GetMaxManaAttribute);
 	TagsToAttributes.Add(GameplayTags.Attribute_Vital_MaxPoise,GetMaxPoiseAttribute);
 	TagsToAttributes.Add(GameplayTags.Attribute_Vital_MaxStamina,GetMaxStaminaAttribute);
-	
+	TagsToAttributes.Add(GameplayTags.Attribute_Vital_MaxMomentum,GetMaxMomentumAttribute);
+
+	InitMomentum(0.f);
+	InitMaxMomentum(100.f);
 }
 //改属性前处理
 void UWGasAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -41,6 +44,14 @@ void UWGasAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 	if (Attribute == GetMaxManaAttribute())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("MaxMana: %f"), NewValue);
+	}
+	if (Attribute == GetMomentumAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMomentum());
+	}
+	if (Attribute == GetMaxMomentumAttribute())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MaxMomentum: %f"), GetMaxMomentum());
 	}
 }
 
@@ -140,6 +151,16 @@ void UWGasAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute,
 		{
 			bPoiseBrokenActive = false;
 			OnPoiseRecovered.Broadcast();
+		}
+	}
+	if (Attribute == GetMomentumAttribute() || Attribute == GetMaxMomentumAttribute())
+	{
+		if (Attribute == GetMomentumAttribute()
+			&& GetMaxMomentum() > 0.f
+			&& OldValue < GetMaxMomentum()
+			&& NewValue >= GetMaxMomentum())
+		{
+			OnMomentumFilled.Broadcast();
 		}
 	}
 }

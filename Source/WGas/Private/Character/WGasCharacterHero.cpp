@@ -6,6 +6,7 @@
 #include "MotionWarpingComponent.h"
 #include "WGasGameplayTags.h"
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
+#include "AbilitySystem/WGasAbilitySystemFunctionLibrary.h"
 #include "AbilitySystem/WGasAttributeSet.h"
 #include "Camera/CameraComponent.h"
 #include "Character/WGasLockOnComponent.h"
@@ -120,6 +121,24 @@ void AWGasCharacterHero::ClearRunningTag()
 		const FGameplayTag& RunningTag = FWGasGameplayTags::Get().State_Running;
 		ASC->SetLooseGameplayTagCount(RunningTag, 0);
 	}
+}
+
+void AWGasCharacterHero::OnDodgeIFrameSuccess_Implementation()
+{
+	GrantMomentum(MomentumGainOnPerfectDodge);
+}
+
+void AWGasCharacterHero::GrantMomentum(float Amount)
+{
+	if (AbilitySystemComponent && Amount > 0.f)
+	{
+		UWGasAbilitySystemFunctionLibrary::AddMomentum(AbilitySystemComponent, Amount);
+	}
+}
+
+void AWGasCharacterHero::NotifyParrySuccess()
+{
+	GrantMomentum(MomentumGainOnParrySuccess);
 }
 
 void AWGasCharacterHero::ApplyMovementSpeed()

@@ -10,6 +10,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "WGasEffectTypes.h"
 #include "WGasGameplayTags.h"
+#include "AbilitySystem/WGasAttributeSet.h"
+
+class UWGasAttributeSet;
 
 UCharacterClassInfo* UWGasAbilitySystemFunctionLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
 {
@@ -60,4 +63,14 @@ void UWGasAbilitySystemFunctionLibrary::ApplyDamageEffectParams(const FDamageEff
 
 	Params.SourceAbilitySystemComponent->ApplyGameplayEffectSpecToTarget(
 		*SpecHandle.Data.Get(), Params.TargetAbilitySystemComponent);
+}
+
+void UWGasAbilitySystemFunctionLibrary::AddMomentum(UAbilitySystemComponent* ASC, float Amount)
+{
+	if (!ASC || Amount <= 0.f) return;
+	const UWGasAttributeSet* AS = Cast<UWGasAttributeSet>(
+	 ASC->GetAttributeSet(UWGasAttributeSet::StaticClass()));
+	if (!AS) return;
+	const float NewMomentum = FMath::Min(AS->GetMomentum() + Amount, AS->GetMaxMomentum());
+	ASC->SetNumericAttributeBase(UWGasAttributeSet::GetMomentumAttribute(), NewMomentum);
 }

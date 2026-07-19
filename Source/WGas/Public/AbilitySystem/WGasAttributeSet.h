@@ -56,6 +56,7 @@ using TStaticFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateU
 DECLARE_MULTICAST_DELEGATE(FOnStaminaDepleted);
 DECLARE_MULTICAST_DELEGATE(FOnPoiseBroken);
 DECLARE_MULTICAST_DELEGATE(FOnPoiseRecovered);
+DECLARE_MULTICAST_DELEGATE(FOnMomentumFilled);
 UCLASS()
 class WGAS_API UWGasAttributeSet : public UAttributeSet
 {
@@ -67,6 +68,7 @@ public:
 	FOnStaminaDepleted OnStaminaDepleted;
 	FOnPoiseBroken OnPoiseBroken;
 	FOnPoiseRecovered OnPoiseRecovered;
+	FOnMomentumFilled OnMomentumFilled;
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)override;
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)override;
@@ -96,6 +98,10 @@ public:
 	ATTRIBUTE_ACCESSORS(UWGasAttributeSet, Stamina);
 
 	UPROPERTY(BlueprintReadOnly, Category = "AttributeSets")
+	FGameplayAttributeData Momentum;
+	ATTRIBUTE_ACCESSORS(UWGasAttributeSet, Momentum);
+
+	UPROPERTY(BlueprintReadOnly, Category = "AttributeSets")
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UWGasAttributeSet, MaxHealth);
 
@@ -110,7 +116,11 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "AttributeSets")
 	FGameplayAttributeData MaxStamina;
-	ATTRIBUTE_ACCESSORS(UWGasAttributeSet, MaxStamina)
+	ATTRIBUTE_ACCESSORS(UWGasAttributeSet, MaxStamina);
+
+	UPROPERTY(BlueprintReadOnly, Category = "AttributeSets")
+	FGameplayAttributeData MaxMomentum;
+	ATTRIBUTE_ACCESSORS(UWGasAttributeSet, MaxMomentum);
 
 
 	/*Meta Attributes*/

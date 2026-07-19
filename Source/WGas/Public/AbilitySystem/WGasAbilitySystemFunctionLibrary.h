@@ -25,4 +25,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "WGas|Damage")
 	static void ApplyDamageEffectParams(const FDamageEffectParams& Params);
+
+	UFUNCTION(BlueprintCallable, Category = "WGas|Damage")
+	static void AddMomentum(UAbilitySystemComponent* ASC, float Amount);
 };

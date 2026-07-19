@@ -44,7 +44,7 @@ public:
 
 	/** 格挡中按 LMB：播弹反动画，等 AnimBP 调 EndBlockActivePhase */
 	void TryParryFromAttackInput();
-
+	static float GetBlockDamageMultiplierForTarget(UAbilitySystemComponent* ASC);
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Block|Movement", meta = (ClampMin = "0.05", ClampMax = "1.0"))
 	float BlockMoveSpeedMultiplier = 0.45f;
@@ -52,6 +52,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Block|Cost")
 	TSubclassOf<UGameplayEffect> BlockStaminaDrainEffectClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Block|Defense", meta = (ClampMin = "0", ClampMax = "1"))
+	float BlockDamageMultiplier = 0.3f;
 private:
 	
 	bool bBlockEndHandled = false;

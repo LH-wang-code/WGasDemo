@@ -19,6 +19,7 @@ public:
 	FGameplayTag Attribute_Vital_MaxMana;
 	FGameplayTag Attribute_Vital_MaxPoise;
 	FGameplayTag Attribute_Vital_MaxStamina;
+	FGameplayTag Attribute_Vital_MaxMomentum;
 	
 	
 	
@@ -62,6 +63,10 @@ public:
 	FGameplayTag State_Dodge;
 	FGameplayTag State_Running;
 	FGameplayTag State_Block;
+	FGameplayTag State_Parry;
+	FGameplayTag State_Parry_Window;
+	FGameplayTag State_Parry_Success;
+	
 	FGameplayTag State_Boss_Attacking;
 	FGameplayTag State_Invulnerable;
 	FGameplayTag State_Boss_PoiseBroken;

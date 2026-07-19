@@ -119,11 +119,36 @@ void UWGasBlock::TryParryFromAttackInput()
 	{
 		return;
 	}
-
 	bParryTriggered = true;
-
+	//弹刀加上parry状态
+	if (UAbilitySystemComponent* ASC = GetWGasASCFromActorInfo())
+	{
+		const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
+		if (Tags.State_Parry.IsValid())
+		{
+			ASC->AddLooseGameplayTag(Tags.State_Parry);
+		}
+	}
 	AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo();
 	SetParryAnimationStateOnCharacter(Character, true);
+}
+
+float UWGasBlock::GetBlockDamageMultiplierForTarget(UAbilitySystemComponent* ASC)
+{
+	if (!ASC)
+	{
+		return 1.f;
+	}
+	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
+	if (!Tags.State_Block.IsValid() || !ASC->HasMatchingGameplayTag(Tags.State_Block))
+	{
+		return 1.f;
+	}
+	if (const UWGasBlock* Block = GetActiveBlock(ASC))
+	{
+		return Block->BlockDamageMultiplier;
+	}
+	return 0.3f; // 有 Tag 但拿不到 GA 实例时的默认值
 }
 
 void UWGasBlock::EndBlockActivePhase()
@@ -166,6 +191,19 @@ void UWGasBlock::EndAbility(
 			if (Tags.Player_Block_InputReleased.IsValid())
 			{
 				ASC->RemoveLooseGameplayTag(Tags.Player_Block_InputReleased);
+			}
+
+			if (Tags.State_Parry.IsValid())
+			{
+				ASC->RemoveLooseGameplayTag(Tags.State_Parry);
+			}
+			if (Tags.State_Parry_Window.IsValid())
+			{
+				ASC->RemoveLooseGameplayTag(Tags.State_Parry_Window);
+			}
+			if (Tags.State_Parry_Success.IsValid())
+			{
+				ASC->RemoveLooseGameplayTag(Tags.State_Parry_Success);
 			}
 		}
 	}

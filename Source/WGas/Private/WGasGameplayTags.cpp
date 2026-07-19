@@ -15,6 +15,8 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("Attribute.Vital.MaxPoise"),FString("Attribute.Vital.MaxPoise"));
 	GameplayTags.Attribute_Vital_MaxStamina=UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Attribute.Vital.MaxStamina"),FString("Attribute.Vital.MaxStamina"));
+	GameplayTags.Attribute_Vital_MaxMomentum=UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attribute.Vital.MaxMomentum"),FString("Attribute.Vital.MaxMomentum"));
 
 	
 	GameplayTags.InputTag_LMB=UGameplayTagsManager::Get().AddNativeGameplayTag(
@@ -68,10 +70,18 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("State.Attacking.Recovery"), FString("State.Attacking.Recovery"));
 	GameplayTags.State_Dodge = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Dodge"), FString("State.Dodge"));
+	
+	
 	GameplayTags.State_Running = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Running"), FString("State.Running"));
 	GameplayTags.State_Block = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Block"), FString("State.Block"));
+	GameplayTags.State_Parry = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("State.Parry"), FString("State.Parry"));
+	GameplayTags.State_Parry_Window = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("State.Parry.Window"), FString("State.Parry.Window"));
+	GameplayTags.State_Parry_Success = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("State.Parry.Success"), FString("State.Parry.Success"));
 	GameplayTags.State_Invulnerable = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Invulnerable"), FString("State.Invulnerable"));
 	GameplayTags.State_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(
