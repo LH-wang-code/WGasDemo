@@ -33,6 +33,16 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Combat")
 	UWGasLockOnComponent* GetLockOnComponent() const { return LockOnComponent; }
 
+	/** 蓝图便捷接口：不直接从 Component 引脚调方法时用这些 */
+	UFUNCTION(BlueprintPure, Category = "Combat|LockOn")
+	bool IsLockOnActive() const;
+
+	UFUNCTION(BlueprintPure, Category = "Combat|LockOn")
+	AActor* GetLockOnTargetActor() const;
+
+	UFUNCTION(BlueprintPure, Category = "Combat|LockOn")
+	FVector GetLockOnTargetLocation() const;
+
 	UFUNCTION(BlueprintPure, Category = "Motion Warping")
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 	UFUNCTION(BlueprintCallable, Category = "Movement")

@@ -42,6 +42,10 @@ UWGasBossMeleeAttack::UWGasBossMeleeAttack()
 	{
 		ActivationBlockedTags.AddTag(Tags.State_Boss_Invulnerable);
 	}
+	if (Tags.State_Parried.IsValid())
+	{
+		ActivationBlockedTags.AddTag(Tags.State_Parried);
+	}
 }
 
 void UWGasBossMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -196,6 +200,69 @@ void UWGasBossMeleeAttack::OnAttackMontageEnded()
 void UWGasBossMeleeAttack::EndBossMeleeAttack(bool bWasCancelled)
 {
 	FinishAttack(bWasCancelled);
+}
+
+UWGasBossMeleeAttack* UWGasBossMeleeAttack::GetActiveBossMeleeAttack(UAbilitySystemComponent* ASC)
+{
+	if (!ASC)
+	{
+		return nullptr;
+	}
+	for (const FGameplayAbilitySpec& Spec:ASC->GetActivatableAbilities())
+	{
+		if (!Spec.IsActive())
+		{
+			continue;
+		}
+		for (UGameplayAbility* Instance : Spec.GetAbilityInstances())
+		{
+			if (UWGasBossMeleeAttack* Melee = Cast<UWGasBossMeleeAttack>(Instance))
+			{
+				return Melee;
+			}
+		}
+	}
+	return nullptr;
+}
+
+bool UWGasBossMeleeAttack::TryInterruptFromParry(UAbilitySystemComponent* AttackerASC)
+{
+	if (UWGasBossMeleeAttack* BossMelee = GetActiveBossMeleeAttack(AttackerASC))
+		return BossMelee->TryInterruptFromParry();
+	return false;
+}
+
+bool UWGasBossMeleeAttack::TryInterruptFromParry()
+{
+	if (bAttackEndHandled || !bInterruptibleByParry)
+		return false;
+	if (AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo())
+	{
+		if (Character->CombatComponent)
+			Character->CombatComponent->EndWeaponSweep();
+	}
+	StopAttackMontage(0.1f);
+	FinishAttack(true);  
+	return true;
+}
+
+void UWGasBossMeleeAttack::StopAttackMontage(float BlendOutTime) const
+{
+	if (!AttackMontage)
+	{
+		return;
+	}
+
+	if (const AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo())
+	{
+		if (USkeletalMeshComponent* Mesh = Character->GetMesh())
+		{
+			if (UAnimInstance* Anim = Mesh->GetAnimInstance())
+			{
+				Anim->Montage_Stop(BlendOutTime, AttackMontage);
+			}
+		}
+	}
 }
 
 void UWGasBossMeleeAttack::FinishAttack(bool bWasCancelled)

@@ -33,6 +33,8 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("InputTag.4"), FString("Input Tag For Key 4"));  // 改为 4
 	GameplayTags.InputTag_Ctrl = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("InputTag.Ctrl"), FString("Input Tag For Key Ctrl"));  
+	GameplayTags.InputTag_R = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("InputTag.R"), FString("Input Tag For Key R"));  
 
 	//Data
 	GameplayTags.Data_Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
@@ -94,7 +96,8 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("State.Boss.Phase.1"), FString("State.Boss.Phase.1"));
 	GameplayTags.State_Boss_Phase_2= UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Boss.Phase.2"), FString("State.Boss.Phase.2"));
-
+	GameplayTags.State_Parried = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Parried"), FString(" is staggered by parry"));
 	//Event
 	GameplayTags.Event_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Event.Boss.PoiseBroken"), FString("Event.Boss.PoiseBroken"));

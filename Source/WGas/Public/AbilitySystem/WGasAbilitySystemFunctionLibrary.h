@@ -28,4 +28,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "WGas|Damage")
 	static void AddMomentum(UAbilitySystemComponent* ASC, float Amount);
+
+	UFUNCTION(BlueprintCallable, Category = "WGas|Damage")
+	static void ConsumeAllMomentum(UAbilitySystemComponent* ASC);
 };

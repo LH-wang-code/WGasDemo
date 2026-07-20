@@ -22,8 +22,8 @@ public:
 	void CleanupPathAndFocus();
 	void ResetDefaultMovement();
 
-	void PauseBrain(FName Reason);
-	void ResumeBrain(FName Reason);
+	bool PauseBrain(FName Reason);
+	void ResumeBrain(FName Reason, bool bRestartBehaviorTree = true);
 	bool IsBrainPaused(FName Reason) const;
 
 	

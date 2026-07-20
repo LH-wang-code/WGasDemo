@@ -5,8 +5,10 @@
 
 #include "AIController.h"
 #include "AbilitySystem/Data/BossAttackInfo.h"
+#include "AbilitySystemComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Character/WGasCharacterEnemy.h"
+#include "WGasGameplayTags.h"
 
 EBTNodeResult::Type UBTT_SelectBossAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -16,6 +18,15 @@ EBTNodeResult::Type UBTT_SelectBossAttack::ExecuteTask(UBehaviorTreeComponent& O
 	if (!Pawn || !Blackboard)
 	{
 		return EBTNodeResult::Failed;
+	}
+
+	if (UAbilitySystemComponent* ASC = Pawn->FindComponentByClass<UAbilitySystemComponent>())
+	{
+		const FGameplayTag& ParriedTag = FWGasGameplayTags::Get().State_Parried;
+		if (ParriedTag.IsValid() && ASC->HasMatchingGameplayTag(ParriedTag))
+		{
+			return EBTNodeResult::Failed;
+		}
 	}
 
 	AActor* TargetActor = Cast<AActor>(Blackboard->GetValueAsObject(TEXT("TargetActor")));

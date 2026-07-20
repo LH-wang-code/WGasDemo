@@ -195,6 +195,11 @@ FVector UWGasLockOnComponent::GetLockOnLocation(const AActor* Target) const
 	return Target->GetActorLocation() + FVector(0.f, 0.f, LockOnHeightOffset);
 }
 
+FVector UWGasLockOnComponent::GetCurrentLockOnLocation() const
+{
+	return GetLockOnLocation(LockTarget.Get());
+}
+
 bool UWGasLockOnComponent::IsValidLockTarget(const AActor* Target) const
 {
 	if (!IsValid(Target))

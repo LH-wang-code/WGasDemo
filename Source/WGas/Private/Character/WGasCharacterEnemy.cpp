@@ -14,6 +14,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MotionWarpingComponent.h"
 #include "WGasGameplayTags.h"
+#include "Character/WGasParriedComponent.h"
 
 AWGasCharacterEnemy::AWGasCharacterEnemy()
 {
@@ -21,7 +22,7 @@ AWGasCharacterEnemy::AWGasCharacterEnemy()
 	AIPause = CreateDefaultSubobject<UBossAIPauseComponent>(TEXT("AIPause"));
 	Poise = CreateDefaultSubobject<UBossPoiseBrokenComponent>(TEXT("Poise"));
 	Phase = CreateDefaultSubobject<UBossPhaseTransitionComponent>(TEXT("Phase"));
-
+	ParriedComponent=CreateDefaultSubobject<UWGasParriedComponent>(TEXT("ParriedComponent"));
 	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
 	{
 		Movement->bOrientRotationToMovement = false;

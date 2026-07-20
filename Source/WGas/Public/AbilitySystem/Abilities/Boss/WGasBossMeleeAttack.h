@@ -26,6 +26,10 @@ public:
 	void BeginBossMeleeAttack();
 	UFUNCTION(BlueprintCallable, Category = "Boss|Melee")
 	void EndBossMeleeAttack(bool bWasCancelled = false);
+
+	static UWGasBossMeleeAttack* GetActiveBossMeleeAttack(UAbilitySystemComponent* ASC);
+	static bool TryInterruptFromParry(UAbilitySystemComponent* AttackerASC);
+	bool TryInterruptFromParry();
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Boss|Melee")
@@ -45,4 +49,8 @@ protected:
 	bool bCachedOrientRotationToMovement = false;
 	bool bCachedUseControllerDesiredRotation = false;
 	bool bCachedAllowPhysicsRotationDuringAnimRootMotion = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Boss|Melee")
+	bool bInterruptibleByParry = true;
+	void StopAttackMontage(float BlendOutTime = 0.1f) const;
 };

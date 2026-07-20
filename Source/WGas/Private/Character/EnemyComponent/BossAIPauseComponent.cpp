@@ -93,28 +93,36 @@ void UBossAIPauseComponent::ResetDefaultMovement()
 	}
 }
 
-void UBossAIPauseComponent::PauseBrain(FName Reason)
+bool UBossAIPauseComponent::PauseBrain(FName Reason)
 {
 	AWGasCharacterEnemy* Enemy = OwnerEnemy.Get();
-	if (!Enemy)return;
+	if (!Enemy)
+	{
+		return false;
+	}
 	if (AAIController* AIC = Cast<AAIController>(Enemy->GetController()))
 	{
 		AIC->StopMovement();
 		AIC->ClearFocus(EAIFocusPriority::Gameplay);
 		AIC->ClearFocus(EAIFocusPriority::Move);
 	}
-	if (ActiveBrainPauseReason != NAME_None)return;
+	if (ActiveBrainPauseReason != NAME_None)
+	{
+		return false;
+	}
 	if (AAIController* AIC = Cast<AAIController>(Enemy->GetController()))
 	{
 		if (UBrainComponent* Brain = AIC->BrainComponent)
 		{
 			Brain->StopLogic(Reason.ToString());
 			ActiveBrainPauseReason = Reason;
+			return true;
 		}
 	}
+	return false;
 }
 
-void UBossAIPauseComponent::ResumeBrain(FName Reason)
+void UBossAIPauseComponent::ResumeBrain(FName Reason, bool bRestartBehaviorTree)
 {
 	if (ActiveBrainPauseReason != Reason)return;
 	AWGasCharacterEnemy* Enemy = OwnerEnemy.Get();
@@ -135,27 +143,30 @@ void UBossAIPauseComponent::ResumeBrain(FName Reason)
 		Brain->ResumeLogic(Reason.ToString());
 	}
 
-	if (UBehaviorTreeComponent* BTComp=Cast<UBehaviorTreeComponent>(Brain))
+	if (bRestartBehaviorTree)
 	{
-		if (UWorld* World=GetWorld())
+		if (UBehaviorTreeComponent* BTComp=Cast<UBehaviorTreeComponent>(Brain))
 		{
-			TWeakObjectPtr<UBehaviorTreeComponent>WeakBTComp=BTComp;
-			World->GetTimerManager().SetTimerForNextTick([WeakBTComp]()
+			if (UWorld* World=GetWorld())
 			{
-				if (WeakBTComp.IsValid())
+				TWeakObjectPtr<UBehaviorTreeComponent>WeakBTComp=BTComp;
+				World->GetTimerManager().SetTimerForNextTick([WeakBTComp]()
 				{
-					WeakBTComp->RestartLogic();
-				}
-			});
+					if (WeakBTComp.IsValid())
+					{
+						WeakBTComp->RestartLogic();
+					}
+				});
+			}
+			else
+			{
+				BTComp->RestartLogic();
+			}
 		}
-		else
+		else if (UBehaviorTree* BT = BehaviorTree.Get())
 		{
-			BTComp->RestartLogic();
+			AIC->RunBehaviorTree(BT);
 		}
-	}
-	else if (UBehaviorTree* BT = BehaviorTree.Get())
-	{
-		AIC->RunBehaviorTree(BT);
 	}
 	ActiveBrainPauseReason = NAME_None;
 }

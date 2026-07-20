@@ -3,13 +3,16 @@
 
 #include "AbilitySystem/ExecCalc_Damage.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "WGasGameplayTags.h"
 #include "AbilitySystem/WGasAttributeSet.h"
 #include "AbilitySystem/Abilities/WGasBlock.h"
+#include "AbilitySystem/Abilities/Boss/WGasBossMeleeAttack.h"
 #include "Character/WGasCharacterBase.h"
 #include "Character/WGasCharacterEnemy.h"
 #include "Character/WGasCharacterHero.h"
+#include "Character/WGasParriedComponent.h"
 
 UExecCalc_Damage::UExecCalc_Damage()
 {
@@ -72,6 +75,18 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 			{
 				Hero->NotifyParrySuccess();
 			}
+			UAbilitySystemComponent* AttackerASC = ExecutionParams.GetSourceAbilitySystemComponent();
+			if (AttackerASC)
+			{
+				if (AWGasCharacterBase* Attacker = Cast<AWGasCharacterBase>(AttackerASC->GetAvatarActor()))
+				{
+					if (UWGasParriedComponent* Parried = Attacker->FindComponentByClass<UWGasParriedComponent>())
+					{
+						Parried->EnterParried(TargetASC->GetAvatarActor());
+					}
+				}
+			}
+			UWGasBossMeleeAttack::TryInterruptFromParry(AttackerASC);
 			return; // 完全免伤
 		}
 	}

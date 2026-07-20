@@ -141,6 +141,29 @@ void AWGasCharacterHero::NotifyParrySuccess()
 	GrantMomentum(MomentumGainOnParrySuccess);
 }
 
+bool AWGasCharacterHero::IsLockOnActive() const
+{
+	return LockOnComponent && LockOnComponent->IsLockedOn();
+}
+
+AActor* AWGasCharacterHero::GetLockOnTargetActor() const
+{
+	if (!LockOnComponent || !LockOnComponent->IsLockedOn())
+	{
+		return nullptr;
+	}
+	return LockOnComponent->GetLockTarget();
+}
+
+FVector AWGasCharacterHero::GetLockOnTargetLocation() const
+{
+	if (!LockOnComponent || !LockOnComponent->IsLockedOn())
+	{
+		return FVector::ZeroVector;
+	}
+	return LockOnComponent->GetCurrentLockOnLocation();
+}
+
 void AWGasCharacterHero::ApplyMovementSpeed()
 {
 	if (UCharacterMovementComponent* Movement = GetCharacterMovement())

@@ -34,7 +34,8 @@ public:
 	FGameplayTag InputTag_3;
 	FGameplayTag InputTag_4;
 	FGameplayTag InputTag_Ctrl;
-
+	FGameplayTag InputTag_R;
+	
 	//Data
 	FGameplayTag Data_Damage;
 	FGameplayTag Data_PoiseDamage;
@@ -43,6 +44,8 @@ public:
 
 	FGameplayTag Abilities_Attack_Melee;
 	FGameplayTag Abilities_Dodge;
+	FGameplayTag Abilities_Momentum_Ultimate;
+	
 
 	//Ability
 	FGameplayTag Ability_Boss_Melee_1;
@@ -66,7 +69,7 @@ public:
 	FGameplayTag State_Parry;
 	FGameplayTag State_Parry_Window;
 	FGameplayTag State_Parry_Success;
-	
+	FGameplayTag State_Momentum_Full;
 	FGameplayTag State_Boss_Attacking;
 	FGameplayTag State_Invulnerable;
 	FGameplayTag State_Boss_PoiseBroken;
@@ -74,7 +77,7 @@ public:
 	FGameplayTag State_Boss_PhaseTransition;
 	FGameplayTag State_Boss_Phase_1;
 	FGameplayTag State_Boss_Phase_2;
-
+	FGameplayTag State_Parried;
 	/*
 	 * Event
 	 */

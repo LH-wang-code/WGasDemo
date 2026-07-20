@@ -7,6 +7,19 @@
 #include "WGasGameplayTags.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
+namespace
+{
+bool IsBossParried(const UAbilitySystemComponent* ASC)
+{
+	if (!ASC)
+	{
+		return false;
+	}
+	const FGameplayTag& ParriedTag = FWGasGameplayTags::Get().State_Parried;
+	return ParriedTag.IsValid() && ASC->HasMatchingGameplayTag(ParriedTag);
+}
+}
+
 UBTT_RunBossAttack::UBTT_RunBossAttack()
 {
 	NodeName = TEXT("Run Boss Attack");
@@ -63,6 +76,12 @@ void UBTT_RunBossAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 	}
 
 	if (AttackingStateTag.IsValid() && ASC->HasMatchingGameplayTag(AttackingStateTag))
+	{
+		return;
+	}
+
+	// 被弹刀硬直期间：攻击 Tag 已清但还不能算本招结束，等 State.Parried 消失
+	if (IsBossParried(ASC))
 	{
 		return;
 	}

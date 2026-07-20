@@ -14,7 +14,7 @@ class UMotionWarpingComponent;
 class UBossAIPauseComponent;
 class UBossPoiseBrokenComponent;
 class UBossPhaseTransitionComponent;
-
+class UWGasParriedComponent;
 UCLASS()
 class WGAS_API AWGasCharacterEnemy : public AWGasCharacterBase
 {
@@ -58,7 +58,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss")
 	TObjectPtr<UBossPhaseTransitionComponent> Phase;
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Boss")
+	TObjectPtr<UWGasParriedComponent> ParriedComponent;
 	virtual void BeginPlay() override;
 
 	virtual void InitAbilityActorInfo() override;

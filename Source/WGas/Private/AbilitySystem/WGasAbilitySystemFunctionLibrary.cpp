@@ -74,3 +74,9 @@ void UWGasAbilitySystemFunctionLibrary::AddMomentum(UAbilitySystemComponent* ASC
 	const float NewMomentum = FMath::Min(AS->GetMomentum() + Amount, AS->GetMaxMomentum());
 	ASC->SetNumericAttributeBase(UWGasAttributeSet::GetMomentumAttribute(), NewMomentum);
 }
+
+void UWGasAbilitySystemFunctionLibrary::ConsumeAllMomentum(UAbilitySystemComponent* ASC)
+{
+	if (!ASC)return;
+	ASC->SetNumericAttributeBase(UWGasAttributeSet::GetMomentumAttribute(), 0);
+}

@@ -7,6 +7,7 @@ UWGasBossPhaseUltimate::UWGasBossPhaseUltimate()
 {
 	// 父类 WGasBossMeleeAttack 会 Block PhaseTransition/Invulnerable，
 	// 但转阶段大招正是在这两个 Tag 生效期间播放，必须允许激活。
+	bInterruptibleByParry = false;
 	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
 	if (Tags.State_Boss_PhaseTransition.IsValid())
 	{

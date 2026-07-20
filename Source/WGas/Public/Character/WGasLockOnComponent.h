@@ -7,7 +7,7 @@
 #include "WGasLockOnComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), BlueprintType)
 class WGAS_API UWGasLockOnComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -17,14 +17,18 @@ public:
 	UWGasLockOnComponent();
 	void ToggleLockOn();
 	void UpdateLockOn(float DeltaTime);
+
+	UFUNCTION(BlueprintPure, Category = "LockOn")
 	bool IsLockedOn() const { return bIsLockedOn; }
+
+	UFUNCTION(BlueprintPure, Category = "LockOn")
 	AActor* GetLockTarget() const { return LockTarget.Get(); }
+
+	UFUNCTION(BlueprintPure, Category = "LockOn")
 	FVector GetLockOnLocation(const AActor* Target) const;
 
-	FVector GetCurrentLockOnLocation() const
-	{
-		return GetLockOnLocation(LockTarget.Get());
-	}
+	UFUNCTION(BlueprintPure, Category = "LockOn")
+	FVector GetCurrentLockOnLocation() const;
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
