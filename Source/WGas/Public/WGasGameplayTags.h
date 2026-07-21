@@ -65,6 +65,7 @@ public:
 	
 	FGameplayTag State_Dodge;
 	FGameplayTag State_Running;
+	FGameplayTag State_HitReact; 
 	FGameplayTag State_Block;
 	FGameplayTag State_Parry;
 	FGameplayTag State_Parry_Window;
@@ -78,6 +79,7 @@ public:
 	FGameplayTag State_Boss_Phase_1;
 	FGameplayTag State_Boss_Phase_2;
 	FGameplayTag State_Parried;
+	FGameplayTag State_Dead;
 	/*
 	 * Event
 	 */
@@ -89,14 +91,23 @@ public:
 	 * Debuff
 	 */
 	FGameplayTag Debuff_Boss_Weak;
+	FGameplayTag Debuff_MomentumUltimate_Bleed;
+	FGameplayTag Debuff_MomentumUltimate_Vulnerable;
+	FGameplayTag Debuff_MomentumUltimate_PoiseBreak;
 	
 	FGameplayTag Player_Block_InputPressed;
 	FGameplayTag Player_Block_InputHeld;
 	FGameplayTag Player_Block_InputReleased;
 	FGameplayTag Player_Block_CursorTrace;
 
-
-
+	/*
+	 * Ultimation
+	 * 
+	 */
+	
+	FGameplayTag Mark_MomentumULtimate_Layer_1;
+	FGameplayTag Mark_MomentumULtimate_Layer_2;
+	FGameplayTag Mark_MomentumULtimate_Layer_3;
 	
 private:
 	static FWGasGameplayTags GameplayTags;

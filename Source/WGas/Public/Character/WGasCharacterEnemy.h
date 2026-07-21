@@ -66,4 +66,6 @@ protected:
 	virtual void InitializeDefaultAttributes() const override;
 
 	virtual USkeletalMeshComponent* GetWeaponTraceMesh() const override;
+
+	virtual void HandleDeathExtras() override;
 };

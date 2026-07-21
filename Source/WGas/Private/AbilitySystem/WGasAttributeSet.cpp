@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
 #include "WGasGameplayTags.h"
+#include "Character/WGasCharacterHero.h"
 #include "GameFramework/Character.h"
 
 UWGasAttributeSet::UWGasAttributeSet()
@@ -107,12 +108,19 @@ void UWGasAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		SetIncomingDamage(0.f);
 		const float NewHealth = GetHealth() - Damage;
 		SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
-		if (GEngine)
+		if (Damage > 0.f)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red,
-				FString::Printf(TEXT("[%s] Took %.0f! HP %.0f -> %.0f"),
-					*GetOwningActor()->GetName(),
-					Damage, GetHealth() + Damage, GetHealth()));
+			if (AWGasCharacterHero* Hero = Cast<AWGasCharacterHero>(Props.TargetAvatarActor))
+			{
+				if (GetHealth() <= 0.f)
+				{
+					Hero->NotifyDeath();
+				}
+				else
+				{
+					Hero->NotifyHitReact(Damage);
+				}
+			}
 		}
 	}
 

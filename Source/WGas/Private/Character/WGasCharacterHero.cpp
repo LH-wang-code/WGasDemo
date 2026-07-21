@@ -8,6 +8,8 @@
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
 #include "AbilitySystem/WGasAbilitySystemFunctionLibrary.h"
 #include "AbilitySystem/WGasAttributeSet.h"
+#include "AbilitySystem/Abilities/WGasMeleeAttack.h"
+#include "Animation/WGasAnimLayerInterface.h"
 #include "Camera/CameraComponent.h"
 #include "Character/WGasLockOnComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -141,6 +143,52 @@ void AWGasCharacterHero::NotifyParrySuccess()
 	GrantMomentum(MomentumGainOnParrySuccess);
 }
 
+void AWGasCharacterHero::NotifyHitReact(float DamageAmount)
+{
+	if (DamageAmount <= 0.f) return;
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	if (ASC)
+	{
+		if (WGasTags.State_Invulnerable.IsValid() && ASC->HasMatchingGameplayTag(WGasTags.State_Invulnerable)) return;
+		if (WGasTags.State_HitReact.IsValid() && ASC->HasMatchingGameplayTag(WGasTags.State_HitReact)) return;
+		if (WGasTags.State_Parry_Window.IsValid() && ASC->HasMatchingGameplayTag(WGasTags.State_Parry_Window)) return;
+	}
+	if (UWGasMeleeAttack* Melee = UWGasMeleeAttack::GetActiveMeleeAttack(ASC))
+	{
+		Melee->TryCancelFromCancelablePhase();
+	}
+	if (ASC && WGasTags.State_HitReact.IsValid())
+	{
+		ASC->AddLooseGameplayTag(WGasTags.State_HitReact);
+	}
+
+	const float Duration = PlayAnimMontage(HitReactMontage);
+	if (Duration <= 0.f)
+	{
+		ASC->RemoveLooseGameplayTag(WGasTags.State_HitReact);
+		return;
+	}
+	if (UAnimInstance* Anim = GetMesh()->GetAnimInstance())
+	{
+		FOnMontageEnded EndDelegate;
+		EndDelegate.BindUObject(this, &AWGasCharacterHero::OnHitReactMontageEnded);
+		Anim->Montage_SetEndDelegate(EndDelegate, HitReactMontage);
+	}
+}
+void AWGasCharacterHero::OnHitReactMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (Montage != HitReactMontage) return;
+	EndHitReactFromAnimation();
+}
+void AWGasCharacterHero::EndHitReactFromAnimation()
+{
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		ASC->RemoveLooseGameplayTag(FWGasGameplayTags::Get().State_HitReact);
+	}
+}
+
 bool AWGasCharacterHero::IsLockOnActive() const
 {
 	return LockOnComponent && LockOnComponent->IsLockedOn();
@@ -169,6 +217,15 @@ void AWGasCharacterHero::ApplyMovementSpeed()
 	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
 	{
 		Movement->MaxWalkSpeed = bIsRunning ? RunSpeed : WalkSpeed;
+	}
+}
+
+void AWGasCharacterHero::HandleDeathExtras()
+{
+	Super::HandleDeathExtras();
+	if (AWGasPlayerController* PC = Cast<AWGasPlayerController>(GetController()))
+	{
+		DisableInput(PC);
 	}
 }
 

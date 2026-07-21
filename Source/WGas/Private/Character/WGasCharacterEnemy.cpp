@@ -91,6 +91,11 @@ USkeletalMeshComponent* AWGasCharacterEnemy::GetWeaponTraceMesh() const
 	return GetMesh();
 }
 
+void AWGasCharacterEnemy::HandleDeathExtras()
+{
+	Super::HandleDeathExtras();
+}
+
 float AWGasCharacterEnemy::GetPoiseBrokenIncomingDamageMultiplier() const
 {
 	return Poise ? Poise->GetIncomingDamageMultiplier() : 1.f;

@@ -12,6 +12,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
@@ -126,6 +127,54 @@ USkeletalMeshComponent* AWGasCharacterBase::GetWeaponTraceMesh() const
 		return Weapon;
 	}
 	return GetMesh();
+}
+
+void AWGasCharacterBase::NotifyDeath()
+{
+	if (bDeathHandled) return;
+	bDeathHandled = true;
+	ApplyDeathState();    // 通用
+	HandleDeathExtras();  // Hero/Enemy 各自 override
+	OnDeath();
+}
+
+void AWGasCharacterBase::OnDeath_Implementation()
+{
+}
+
+void AWGasCharacterBase::ApplyDeathState()
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	if (ASC)
+	{
+		ASC->CancelAllAbilities();
+		if (WGasTags.State_Dead.IsValid())
+		{
+			ASC->AddLooseGameplayTag(WGasTags.State_Dead);
+		}
+	}
+	if (CombatComponent)
+	{
+		CombatComponent->EndWeaponSweep();
+	}
+	if (UCharacterMovementComponent* Move = GetCharacterMovement())
+	{
+		Move->StopMovementImmediately();
+		Move->DisableMovement();
+	}
+	if (DeathMontage)
+	{
+		PlayAnimMontage(DeathMontage);
+	}
+	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+	{
+		Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+}
+
+void AWGasCharacterBase::HandleDeathExtras()
+{
 }
 
 void AWGasCharacterBase::EndDodgeFromAnimation()

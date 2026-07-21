@@ -59,7 +59,48 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Momentum|LockOn")
 	void ClearUltimateWarpTarget();
 
+	/** Montage 每段 Notify 开头调用：0/1/2。仅该段伤害/削韧写入 DamageWindow。 */
+	UFUNCTION(BlueprintCallable, Category = "Momentum|Segments")
+	void BeginUltimateSegment(int32 SegmentIndex);
+
+	UFUNCTION(BlueprintPure, Category = "Momentum|Segments")
+	int32 GetCurrentUltimateSegment() const { return CurrentSegmentIndex; }
+
+	/**
+	 * 每段 Montage On Completed 后调用（SegmentIndex 0/1/2）。
+	 * 挂对应 Mark / Debuff；第 3 段若三层齐全则结算并清标记。
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Momentum|Marks")
+	void ApplyMomentumLayerToTarget(int32 SegmentIndex, AActor* TargetActor);
+
 protected:
+	FDamagePayLoad BuildSegmentDamagePayload(int32 SegmentIndex) const;
+	void RegisterSegmentDamageWindow(int32 SegmentIndex);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Momentum|Segments", meta = (ClampMin = "0"))
+	TArray<float> SegmentDamages;
+
+	/** 仅第 1 段填削韧；第 2/3 段保持 0。 */
+	UPROPERTY(EditDefaultsOnly, Category = "Momentum|Segments", meta = (ClampMin = "0"))
+	TArray<float> SegmentPoiseDamages;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Momentum|Marks")
+	TArray<TSubclassOf<UGameplayEffect>> MarkEffectClasses;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Momentum|Marks")
+	TSubclassOf<UGameplayEffect> BleedEffectClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Momentum|Marks")
+	TSubclassOf<UGameplayEffect> VulnerableEffectClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Momentum|Marks", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float DetonationMaxHealthPercent = 0.15f;
+
+	void ApplyGameplayEffectToTarget(UAbilitySystemComponent* TargetASC, TSubclassOf<UGameplayEffect> EffectClass) const;
+	bool HasAllMomentumMarks(const UAbilitySystemComponent* TargetASC) const;
+	void TryDetonateMomentumMarks(UAbilitySystemComponent* TargetASC);
+	void ClearMomentumMarksAndDebuffs(UAbilitySystemComponent* TargetASC) const;
+
 	UFUNCTION(BlueprintCallable, Category = "Momentum")
 	void BeginMomentumUltimate();
 
@@ -90,4 +131,5 @@ protected:
 
 private:
 	bool bUltimateEndHandled = false;
+	int32 CurrentSegmentIndex = -1;
 };

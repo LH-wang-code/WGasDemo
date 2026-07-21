@@ -82,7 +82,21 @@ protected:
 	
 	UPROPERTY(EditAnywhere,Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>>StartupPassiveAbilities;	
-	
+
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Death")
+	TObjectPtr<UAnimMontage> DeathMontage;
+
+
+public:
+	bool bDeathHandled = false;
+	UFUNCTION(BlueprintCallable, Category = "Combat|Death")
+	virtual void NotifyDeath();
+	UFUNCTION(BlueprintNativeEvent, Category = "Combat|Death")
+	void OnDeath();
+	virtual void ApplyDeathState();   // Tag、Cancel、停移动、播蒙太奇
+	virtual void HandleDeathExtras(); // 子类扩展点（默认空）
 private:
 	bool bStartupAbilitiesGiven = false;
 };

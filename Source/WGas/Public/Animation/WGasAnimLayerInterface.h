@@ -29,4 +29,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Block|Animation")
 	void SetParryAnimationState(bool bIsParrying);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Hit|Animation")
+	void SetHitReactAnimationState(bool bIsHitReacting);
 };

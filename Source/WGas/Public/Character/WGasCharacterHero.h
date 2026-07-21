@@ -66,6 +66,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Momentum")
 	void NotifyParrySuccess();
 
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Hit")
+	TObjectPtr<UAnimMontage> HitReactMontage;
+	
+	UFUNCTION(BlueprintCallable, Category = "Combat|Hit")
+	void NotifyHitReact(float DamageAmount);
+
+	UFUNCTION(BlueprintCallable, Category = "Combat|Hit")
+	void EndHitReactFromAnimation();
+
+	void OnHitReactMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	
 protected:
 
@@ -81,6 +91,8 @@ protected:
 	float MomentumGainOnParrySuccess = 34.f;
 	void ApplyMovementSpeed();
 
+	virtual void HandleDeathExtras() override;
+	
 	TObjectPtr<UGasInputBufferComponent>InputBufferComponent;
 	
 	UPROPERTY(EditDefaultsOnly)

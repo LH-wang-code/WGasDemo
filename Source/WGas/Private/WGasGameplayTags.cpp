@@ -78,6 +78,8 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("State.Running"), FString("State.Running"));
 	GameplayTags.State_Block = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Block"), FString("State.Block"));
+	GameplayTags.State_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.HitReact"), FString("State.HitReact"));
 	GameplayTags.State_Parry = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("State.Parry"), FString("State.Parry"));
 	GameplayTags.State_Parry_Window = UGameplayTagsManager::Get().AddNativeGameplayTag(
@@ -98,6 +100,9 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("State.Boss.Phase.2"), FString("State.Boss.Phase.2"));
 	GameplayTags.State_Parried = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Parried"), FString(" is staggered by parry"));
+
+	GameplayTags.State_Dead = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Dead"), FString(" tate.Dead"));
 	//Event
 	GameplayTags.Event_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Event.Boss.PoiseBroken"), FString("Event.Boss.PoiseBroken"));
@@ -109,6 +114,12 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 	//Debuff
 	GameplayTags.Debuff_Boss_Weak = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Debuff.Boss.Weak"), FString("Debuff.Boss.Weak"));
+	GameplayTags.Debuff_MomentumUltimate_Bleed = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.MomentumUltimate.Bleed"), FString("Debuff.MomentumUltimate.Bleed"));
+	GameplayTags.Debuff_MomentumUltimate_Vulnerable = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.MomentumUltimate.Vulnerable"), FString("Debuff.MomentumUltimate.Vulnerable"));
+	GameplayTags.Debuff_MomentumUltimate_PoiseBreak = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.MomentumUltimate.PoiseBreak"), FString("Debuff.MomentumUltimate.PoiseBreak"));
 
 	//PlayerBlock
 	GameplayTags.Player_Block_InputPressed = UGameplayTagsManager::Get().AddNativeGameplayTag(
@@ -122,4 +133,13 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 	
 	GameplayTags.State_Boss_Attacking = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Boss.Attacking"), FString("Boss is performing an attack"));
+
+
+	GameplayTags.Mark_MomentumULtimate_Layer_1 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Mark.MomentumULtimate.Layer.1"), FString("Mark.MomentumULtimate.Layer.1"));
+	GameplayTags.Mark_MomentumULtimate_Layer_2 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Mark.MomentumULtimate.Layer.2"), FString("Mark.MomentumULtimate.Layer.2"));
+	GameplayTags.Mark_MomentumULtimate_Layer_3 = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Mark.MomentumULtimate.Layer.3"), FString("Mark.MomentumULtimate.Layer.3"));
+	
 }

@@ -3,6 +3,7 @@
 
 #include "AbilitySystem/Abilities/WGasMomentumUltimate.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "WGasGameplayTags.h"
 #include "AbilitySystem/WGasAbilitySystemFunctionLibrary.h"
 #include "AbilitySystem/WGasAttributeSet.h"
@@ -16,6 +17,7 @@
 UWGasMomentumUltimate::UWGasMomentumUltimate()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	SegmentPoiseDamages = { 65.f, 0.f, 0.f };
 }
 
 bool UWGasMomentumUltimate::CanActivateAbility(
@@ -75,9 +77,64 @@ void UWGasMomentumUltimate::ActivateAbility(
 	OnMomentumUltimateActivated();
 }
 
+FDamagePayLoad UWGasMomentumUltimate::BuildSegmentDamagePayload(const int32 SegmentIndex) const
+{
+	FDamagePayLoad Payload = BuildDamagePayload();
+	Payload.BasePoiseDamage = 0.f;
+
+	if (SegmentDamages.IsValidIndex(SegmentIndex) && SegmentDamages[SegmentIndex] > 0.f)
+	{
+		Payload.BaseDamage = SegmentDamages[SegmentIndex];
+	}
+
+	if (SegmentPoiseDamages.IsValidIndex(SegmentIndex))
+	{
+		Payload.BasePoiseDamage = FMath::Max(0.f, SegmentPoiseDamages[SegmentIndex]);
+	}
+
+	return Payload;
+}
+
+void UWGasMomentumUltimate::RegisterSegmentDamageWindow(const int32 SegmentIndex)
+{
+	AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo();
+	if (!Character || !Character->CombatComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BeginUltimateSegment: 缺少 Character 或 CombatComponent"));
+		return;
+	}
+
+	const FDamagePayLoad Payload = BuildSegmentDamagePayload(SegmentIndex);
+	if (!Payload.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BeginUltimateSegment(%d): Payload 无效"), SegmentIndex);
+		return;
+	}
+
+#if !UE_BUILD_SHIPPING
+	UE_LOG(LogTemp, Warning, TEXT("[MomentumUltimate] Segment=%d  Damage=%.1f  PoiseDamage=%.1f"),
+		SegmentIndex, Payload.BaseDamage, Payload.BasePoiseDamage);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow,
+			FString::Printf(TEXT("Ultimate Seg %d | Dmg %.0f | Poise %.0f"),
+				SegmentIndex, Payload.BaseDamage, Payload.BasePoiseDamage));
+	}
+#endif
+
+	Character->CombatComponent->BeginDamageWindow(Payload);
+}
+
+void UWGasMomentumUltimate::BeginUltimateSegment(const int32 SegmentIndex)
+{
+	CurrentSegmentIndex = SegmentIndex;
+	RegisterSegmentDamageWindow(SegmentIndex);
+}
+
 void UWGasMomentumUltimate::BeginMomentumUltimate()
 {
 	bUltimateEndHandled = false;
+	CurrentSegmentIndex = -1;
 
 	if (UAbilitySystemComponent* ASC = GetWGasASCFromActorInfo())
 	{
@@ -98,8 +155,6 @@ void UWGasMomentumUltimate::BeginMomentumUltimate()
 			}
 		}
 	}
-
-	RegisterDamageWindow();
 }
 
 void UWGasMomentumUltimate::EndMomentumUltimate(const bool bWasCancelled)
@@ -268,4 +323,141 @@ void UWGasMomentumUltimate::EndAbility(
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UWGasMomentumUltimate::ApplyGameplayEffectToTarget(
+	UAbilitySystemComponent* TargetASC,
+	const TSubclassOf<UGameplayEffect> EffectClass) const
+{
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+	if (!EffectClass || !SourceASC || !TargetASC)
+	{
+		return;
+	}
+
+	FGameplayEffectContextHandle Context = SourceASC->MakeEffectContext();
+	if (AActor* Avatar = GetAvatarActorFromActorInfo())
+	{
+		Context.AddSourceObject(Avatar);
+	}
+
+	const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(EffectClass, 1.f, Context);
+	if (!SpecHandle.IsValid())
+	{
+		return;
+	}
+
+	SourceASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
+}
+
+bool UWGasMomentumUltimate::HasAllMomentumMarks(const UAbilitySystemComponent* TargetASC) const
+{
+	if (!TargetASC)
+	{
+		return false;
+	}
+
+	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
+	return Tags.Mark_MomentumULtimate_Layer_1.IsValid()
+		&& Tags.Mark_MomentumULtimate_Layer_2.IsValid()
+		&& Tags.Mark_MomentumULtimate_Layer_3.IsValid()
+		&& TargetASC->HasMatchingGameplayTag(Tags.Mark_MomentumULtimate_Layer_1)
+		&& TargetASC->HasMatchingGameplayTag(Tags.Mark_MomentumULtimate_Layer_2)
+		&& TargetASC->HasMatchingGameplayTag(Tags.Mark_MomentumULtimate_Layer_3);
+}
+
+void UWGasMomentumUltimate::ClearMomentumMarksAndDebuffs(UAbilitySystemComponent* TargetASC) const
+{
+	if (!TargetASC)
+	{
+		return;
+	}
+
+	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
+	FGameplayTagContainer RemoveTags;
+	if (Tags.Mark_MomentumULtimate_Layer_1.IsValid()) { RemoveTags.AddTag(Tags.Mark_MomentumULtimate_Layer_1); }
+	if (Tags.Mark_MomentumULtimate_Layer_2.IsValid()) { RemoveTags.AddTag(Tags.Mark_MomentumULtimate_Layer_2); }
+	if (Tags.Mark_MomentumULtimate_Layer_3.IsValid()) { RemoveTags.AddTag(Tags.Mark_MomentumULtimate_Layer_3); }
+	if (Tags.Debuff_MomentumUltimate_Bleed.IsValid()) { RemoveTags.AddTag(Tags.Debuff_MomentumUltimate_Bleed); }
+	if (Tags.Debuff_MomentumUltimate_Vulnerable.IsValid()) { RemoveTags.AddTag(Tags.Debuff_MomentumUltimate_Vulnerable); }
+
+	if (!RemoveTags.IsEmpty())
+	{
+		TargetASC->RemoveActiveEffectsWithGrantedTags(RemoveTags);
+	}
+}
+
+void UWGasMomentumUltimate::TryDetonateMomentumMarks(UAbilitySystemComponent* TargetASC)
+{
+	if (!HasAllMomentumMarks(TargetASC))
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+	if (!SourceASC || !DamageEffectClass || DetonationMaxHealthPercent <= 0.f)
+	{
+		ClearMomentumMarksAndDebuffs(TargetASC);
+		return;
+	}
+
+	const UWGasAttributeSet* TargetAS = Cast<UWGasAttributeSet>(
+		TargetASC->GetAttributeSet(UWGasAttributeSet::StaticClass()));
+	if (!TargetAS)
+	{
+		return;
+	}
+
+	const float DetonationDamage = TargetAS->GetMaxHealth() * DetonationMaxHealthPercent;
+	if (DetonationDamage > 0.f)
+	{
+		FDamageEffectParams Params;
+		Params.DamageGameplayEffectClass = DamageEffectClass;
+		Params.SourceAbilitySystemComponent = SourceASC;
+		Params.TargetAbilitySystemComponent = TargetASC;
+		Params.DamageType = DamageType;
+		Params.BaseDamage = DetonationDamage;
+		Params.BasePoiseDamage = 0.f;
+		UWGasAbilitySystemFunctionLibrary::ApplyDamageEffectParams(Params);
+	}
+
+	ClearMomentumMarksAndDebuffs(TargetASC);
+}
+
+void UWGasMomentumUltimate::ApplyMomentumLayerToTarget(const int32 SegmentIndex, AActor* TargetActor)
+{
+	if (!TargetActor || SegmentIndex < 0 || SegmentIndex > 2)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if (!TargetASC)
+	{
+		return;
+	}
+
+	if (MarkEffectClasses.IsValidIndex(SegmentIndex) && MarkEffectClasses[SegmentIndex])
+	{
+		ApplyGameplayEffectToTarget(TargetASC, MarkEffectClasses[SegmentIndex]);
+	}
+
+	switch (SegmentIndex)
+	{
+	case 1:
+		if (BleedEffectClass)
+		{
+			ApplyGameplayEffectToTarget(TargetASC, BleedEffectClass);
+		}
+		break;
+	case 2:
+		if (VulnerableEffectClass)
+		{
+			ApplyGameplayEffectToTarget(TargetASC, VulnerableEffectClass);
+		}
+		TryDetonateMomentumMarks(TargetASC);
+		break;
+	default:
+		break;
+	}
 }
