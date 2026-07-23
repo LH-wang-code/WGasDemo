@@ -47,17 +47,24 @@ public:
 	FGameplayTag Abilities_Momentum_Ultimate;
 	
 
-	//Ability
+	//Ability1
 	FGameplayTag Ability_Boss_Melee_1;
 	FGameplayTag Ability_Boss_Melee_2;
 	FGameplayTag Ability_Boss_Melee_3;
 	FGameplayTag Ability_Boss_Melee_4;
 	FGameplayTag Ability_Boss_Melee_5;
-	
+	//Ability2
+	FGameplayTag Ability_Boss_Greatsword_1;
+	FGameplayTag Ability_Boss_Greatsword_2;
+	FGameplayTag Ability_Boss_Greatsword_3;
+	FGameplayTag Ability_Boss_Greatsword_4;
+	FGameplayTag Ability_Boss_Greatsword_5;
+	FGameplayTag Ability_Boss_Greatsword_Guard;
 	FGameplayTag Ability_Boss_Charge;
 	
 	FGameplayTag Ability_Player_Melee_Combo;
-	
+	FGameplayTag Ability_Boss_Parry;
+	FGameplayTag Ability_Boss_Greatsword_GuardRelease;
 	/*State*/
 	FGameplayTag State_Attacking_Lighting;
 	FGameplayTag State_Attacking_Active;
@@ -80,6 +87,10 @@ public:
 	FGameplayTag State_Boss_Phase_2;
 	FGameplayTag State_Parried;
 	FGameplayTag State_Dead;
+
+	FGameplayTag State_Boss_Parry_Window;
+	FGameplayTag State_Boss_Parry_Success;
+	FGameplayTag State_Boss_Greatsword_Block;
 	/*
 	 * Event
 	 */
@@ -108,6 +119,13 @@ public:
 	FGameplayTag Mark_MomentumULtimate_Layer_1;
 	FGameplayTag Mark_MomentumULtimate_Layer_2;
 	FGameplayTag Mark_MomentumULtimate_Layer_3;
+
+
+
+	/*
+	 * cooldown
+	 */
+	FGameplayTag Cooldown_Ability_MomentumUltimate;
 	
 private:
 	static FWGasGameplayTags GameplayTags;

@@ -6,9 +6,11 @@
 #include "Abilities/GameplayAbility.h"
 #include "Animation/AnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/World.h"
 #include "WGasGameplayTags.h"
 #include "AbilitySystem/WGasAbilitySystemComponent.h"
 #include "AbilitySystem/WGasAttributeSet.h"
+#include "AbilitySystem/Abilities/Boss/WGasBossMeleeAttack.h"
 #include "Character/WGasCharacterEnemy.h"
 #include "Character/EnemyComponent/BossPoiseBrokenComponent.h"
 #include "Character/EnemyComponent/BossAIPauseComponent.h"
@@ -95,6 +97,16 @@ void UBossPhaseTransitionComponent::BeginPhaseTransition()
 			UE_LOG(LogTemp, Error, TEXT("[%s] Phase ultimate failed to activate."), *Enemy->GetName());
 			OnPhaseUltimateEnded();
 		}
+		else if (UWorld* World = Enemy->GetWorld())
+		{
+			// 大招动画或计时器异常时，不能让 Boss 永久停在无敌的转阶段状态。
+			World->GetTimerManager().SetTimer(
+				PhaseTransitionFailSafeTimer,
+				this,
+				&UBossPhaseTransitionComponent::ForceCompletePhaseTransition,
+				PhaseTransitionFailSafeSeconds,
+				false);
+		}
 		return;
 	}
 	OnPhaseUltimateEnded();
@@ -109,6 +121,10 @@ void UBossPhaseTransitionComponent::EnterPhase2()
 	if (!Enemy || !AIPauseComp)return;
 	UWGasAbilitySystemComponent* ASC = Cast<UWGasAbilitySystemComponent>(Enemy->GetAbilitySystemComponent());
 	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	if (UWorld* World = Enemy->GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(PhaseTransitionFailSafeTimer);
+	}
 	if (ASC)
 	{
 		if (PhaseInvincibleEffectHandle.IsValid())
@@ -118,11 +134,15 @@ void UBossPhaseTransitionComponent::EnterPhase2()
 		}
 		if (WGasTags.State_Boss_Invulnerable.IsValid())
 		{
-			ASC->RemoveLooseGameplayTag(WGasTags.State_Boss_Invulnerable);
+			// 同时清掉 GE 授予的 Tag 和可能因重复转阶段遗留的 Loose Tag 计数。
+			FGameplayTagContainer InvulnerabilityTags;
+			InvulnerabilityTags.AddTag(WGasTags.State_Boss_Invulnerable);
+			ASC->RemoveActiveEffectsWithGrantedTags(InvulnerabilityTags);
+			ASC->SetLooseGameplayTagCount(WGasTags.State_Boss_Invulnerable, 0);
 		}
 		if (WGasTags.State_Boss_PhaseTransition.IsValid())
 		{
-			ASC->RemoveLooseGameplayTag(WGasTags.State_Boss_PhaseTransition);
+			ASC->SetLooseGameplayTagCount(WGasTags.State_Boss_PhaseTransition, 0);
 		}
 		if (WGasTags.State_Boss_Phase_2.IsValid())
 		{
@@ -140,6 +160,30 @@ void UBossPhaseTransitionComponent::EnterPhase2()
 	AIPauseComp->ResumeBrain(TEXT("PhaseTransition"));
 }
 
+void UBossPhaseTransitionComponent::ForceCompletePhaseTransition()
+{
+	if (bPhase2Entered)
+	{
+		return;
+	}
+
+	AWGasCharacterEnemy* Enemy = OwnerEnemy.Get();
+	UWGasAbilitySystemComponent* ASC = Enemy
+		? Cast<UWGasAbilitySystemComponent>(Enemy->GetAbilitySystemComponent())
+		: nullptr;
+
+	// 正常情况下这里正是转阶段大招；强制结束它会走 FinishAttack，清理攻击状态。
+	if (ASC)
+	{
+		if (UWGasBossMeleeAttack* ActiveAttack = UWGasBossMeleeAttack::GetActiveBossMeleeAttack(ASC))
+		{
+			ActiveAttack->EndBossMeleeAttack(true);
+		}
+	}
+
+	EnterPhase2();
+}
+
 void UBossPhaseTransitionComponent::CancelCurrentCombatActions()
 {
 	AWGasCharacterEnemy* Enemy = OwnerEnemy.Get();
@@ -149,11 +193,17 @@ void UBossPhaseTransitionComponent::CancelCurrentCombatActions()
 	UWGasAbilitySystemComponent*ASC=Cast<UWGasAbilitySystemComponent>(Enemy->GetAbilitySystemComponent());
 	if (!ASC)return;
 	const FWGasGameplayTags& WGasTags=FWGasGameplayTags::Get();
-	if (WGasTags.State_Boss_Attacking.IsValid())
+	// State.Boss.Attacking 是 ASC 上的状态 Tag，并不是 GA 自己的 AbilityTag。
+	// 不能用它作为 CancelAbilities 的筛选条件，否则旧攻击会继续持有该状态，
+	// 进而阻止转阶段大招与二阶段攻击激活。
+	if (UWGasBossMeleeAttack* ActiveAttack = UWGasBossMeleeAttack::GetActiveBossMeleeAttack(ASC))
 	{
-		FGameplayTagContainer CancelTags;
-		CancelTags.AddTag(WGasTags.State_Boss_Attacking);
-		ASC->CancelAbilities(&CancelTags);
+		ActiveAttack->EndBossMeleeAttack(true);
+	}
+	else if (WGasTags.State_Boss_Attacking.IsValid())
+	{
+		// 防御性清理：处理异常中断后没有活动 GA、但状态 Tag 遗留的情况。
+		ASC->RemoveLooseGameplayTag(WGasTags.State_Boss_Attacking);
 	}
 	if (Enemy->CombatComponent)
 	{

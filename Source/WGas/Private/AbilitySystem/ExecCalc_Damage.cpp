@@ -8,11 +8,12 @@
 #include "WGasGameplayTags.h"
 #include "AbilitySystem/WGasAttributeSet.h"
 #include "AbilitySystem/Abilities/WGasBlock.h"
+#include "AbilitySystem/Abilities/WGasMeleeAttack.h"
 #include "AbilitySystem/Abilities/Boss/WGasBossMeleeAttack.h"
 #include "Character/WGasCharacterBase.h"
-#include "Character/WGasCharacterEnemy.h"
 #include "Character/WGasCharacterHero.h"
 #include "Character/WGasParriedComponent.h"
+#include "Interaction/BossCombatInterface.h"
 
 UExecCalc_Damage::UExecCalc_Damage()
 {
@@ -54,16 +55,57 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	{
 		if (const AActor* TargetActor=ExecutionParams.GetTargetAbilitySystemComponent()->GetAvatarActor())
 		{
-			if (const AWGasCharacterEnemy* Enemy=Cast<AWGasCharacterEnemy>(TargetActor))
+			if (const IBossCombatInterface* BossCombat = Cast<IBossCombatInterface>(TargetActor))
 			{
-				Damage *= Enemy->GetPoiseBrokenIncomingDamageMultiplier();
+				Damage *= BossCombat->GetBossIncomingDamageMultiplier();
 			}
 		}
 	}
-
+	
 	//格挡与免伤
 	if (UAbilitySystemComponent* TargetASC=ExecutionParams.GetTargetAbilitySystemComponent())
 	{
+		if (WGasTags.State_Boss_Parry_Window.IsValid() &&
+		TargetASC->HasMatchingGameplayTag(WGasTags.State_Boss_Parry_Window))
+		{
+			UAbilitySystemComponent* SourceASC =ExecutionParams.GetSourceAbilitySystemComponent();
+			if (SourceASC)
+			{
+				if (AWGasCharacterHero* Hero =
+					Cast<AWGasCharacterHero>(SourceASC->GetAvatarActor()))
+				{
+					// Boss 记录本次弹反成功，供 GA_BossParry 蓝图判断。
+					if (WGasTags.State_Boss_Parry_Success.IsValid())
+					{
+						TargetASC->AddLooseGameplayTag(
+							WGasTags.State_Boss_Parry_Success);
+					}
+
+					// 中断玩家正在进行的近战技能。
+					if (UWGasMeleeAttack* Melee =
+						UWGasMeleeAttack::GetActiveMeleeAttack(SourceASC))
+					{
+						Melee->EndMeleeAttack(true);
+					}
+
+					// 玩家播放受击硬直；传入 1 仅用于触发硬直，不额外扣血。
+					Hero->NotifyHitReact(1.f);
+
+					return; // 不向 Boss 结算此次伤害
+				}
+			}
+		}
+		if (WGasTags.State_Boss_Greatsword_Block.IsValid()&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Boss_Greatsword_Block))
+		{
+			if (IBossCombatInterface* BossCombat = Cast<IBossCombatInterface>(TargetASC->GetAvatarActor()))
+			{
+				if (BossCombat->IsBossPhase2())
+				{
+					BossCombat->NotifyBossGuardedHit();
+				}
+			}
+			Damage *= 0.35f;
+		}
 		if (WGasTags.State_Block.IsValid()&& TargetASC->HasMatchingGameplayTag(WGasTags.State_Block))
 		{
 			Damage *= UWGasBlock::GetBlockDamageMultiplierForTarget(TargetASC);

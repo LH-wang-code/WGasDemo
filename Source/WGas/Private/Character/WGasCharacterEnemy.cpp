@@ -15,6 +15,7 @@
 #include "MotionWarpingComponent.h"
 #include "WGasGameplayTags.h"
 #include "Character/WGasParriedComponent.h"
+#include "Character/EnemyComponent/BossGreatswordReactionComponent.h"
 
 AWGasCharacterEnemy::AWGasCharacterEnemy()
 {
@@ -23,6 +24,7 @@ AWGasCharacterEnemy::AWGasCharacterEnemy()
 	Poise = CreateDefaultSubobject<UBossPoiseBrokenComponent>(TEXT("Poise"));
 	Phase = CreateDefaultSubobject<UBossPhaseTransitionComponent>(TEXT("Phase"));
 	ParriedComponent=CreateDefaultSubobject<UWGasParriedComponent>(TEXT("ParriedComponent"));
+	GreatswordGuardReaction =CreateDefaultSubobject<UBossGreatswordReactionComponent>(TEXT("GreatswordGuardReaction"));
 	if (UCharacterMovementComponent* Movement = GetCharacterMovement())
 	{
 		Movement->bOrientRotationToMovement = false;
@@ -99,6 +101,51 @@ void AWGasCharacterEnemy::HandleDeathExtras()
 float AWGasCharacterEnemy::GetPoiseBrokenIncomingDamageMultiplier() const
 {
 	return Poise ? Poise->GetIncomingDamageMultiplier() : 1.f;
+}
+
+const UBossAttackInfo* AWGasCharacterEnemy::GetBossAttackSet() const
+{
+	return AttackSet;
+}
+
+bool AWGasCharacterEnemy::IsBossPhase2() const
+{
+	return AbilitySystemComponent
+		&& AbilitySystemComponent->HasMatchingGameplayTag(FWGasGameplayTags::Get().State_Boss_Phase_2);
+}
+
+float AWGasCharacterEnemy::GetBossIncomingDamageMultiplier() const
+{
+	return GetPoiseBrokenIncomingDamageMultiplier();
+}
+
+void AWGasCharacterEnemy::NotifyBossGuardedHit()
+{
+	if (GreatswordGuardReaction)
+	{
+		GreatswordGuardReaction->RegisterGuardedHit();
+	}
+}
+
+void AWGasCharacterEnemy::NotifyBossNormalAttackFinished()
+{
+	if (GreatswordGuardReaction)
+	{
+		GreatswordGuardReaction->NotifyNormalSkillFinished();
+	}
+}
+
+bool AWGasCharacterEnemy::IsBossGuardReleaseReady() const
+{
+	return GreatswordGuardReaction && GreatswordGuardReaction->IsReleaseReady();
+}
+
+void AWGasCharacterEnemy::ConsumeBossGuardRelease()
+{
+	if (GreatswordGuardReaction)
+	{
+		GreatswordGuardReaction->ConsumeRelease();
+	}
 }
 
 void AWGasCharacterEnemy::OnPhaseUltimateEnded()

@@ -2,10 +2,12 @@
 
 
 #include "AI/BTT_RunBossAttack.h"
+#include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "WGasGameplayTags.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Interaction/BossCombatInterface.h"
 
 namespace
 {
@@ -42,6 +44,24 @@ EBTNodeResult::Type UBTT_RunBossAttack::ExecuteTask(UBehaviorTreeComponent& Owne
 	{
 		return EBTNodeResult::Failed;
 	}
+
+	// Phase.2 已经存在时，转阶段与无敌状态只能是残留，不能再阻止大剑能力。
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	if (WGasTags.State_Boss_Phase_2.IsValid()
+		&& ASC->HasMatchingGameplayTag(WGasTags.State_Boss_Phase_2))
+	{
+		if (WGasTags.State_Boss_Invulnerable.IsValid())
+		{
+			FGameplayTagContainer InvulnerabilityTags;
+			InvulnerabilityTags.AddTag(WGasTags.State_Boss_Invulnerable);
+			ASC->RemoveActiveEffectsWithGrantedTags(InvulnerabilityTags);
+			ASC->SetLooseGameplayTagCount(WGasTags.State_Boss_Invulnerable, 0);
+		}
+		if (WGasTags.State_Boss_PhaseTransition.IsValid())
+		{
+			ASC->SetLooseGameplayTagCount(WGasTags.State_Boss_PhaseTransition, 0);
+		}
+	}
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	const FName TagName = BB ? BB->GetValueAsName(TEXT("SelectedAttackTag")) : NAME_None;
 	FGameplayTag AttackTag = FGameplayTag::RequestGameplayTag(TagName, false);
@@ -51,7 +71,43 @@ EBTNodeResult::Type UBTT_RunBossAttack::ExecuteTask(UBehaviorTreeComponent& Owne
 	AbilityTags.AddTag(AttackTag);
 	if (!ASC->TryActivateAbilitiesByTag(AbilityTags))
 	{
+		FGameplayTagContainer OwnedTags;
+		ASC->GetOwnedGameplayTags(OwnedTags);
+
+		bool bFoundMatchingAbility = false;
+		FGameplayTagContainer FailureTags;
+		for (const FGameplayAbilitySpec& Spec : ASC->GetActivatableAbilities())
+		{
+			const UGameplayAbility* Ability = Spec.Ability;
+			if (!Ability || !Ability->GetAssetTags().HasTagExact(AttackTag))
+			{
+				continue;
+			}
+
+			bFoundMatchingAbility = true;
+			Ability->CanActivateAbility(
+				Spec.Handle,
+				ASC->AbilityActorInfo.Get(),
+				nullptr,
+				nullptr,
+				&FailureTags);
+		}
+
+		UE_LOG(LogTemp, Error,
+			TEXT("Run Boss Attack FAILED: Tag=%s FoundSpec=%d FailureTags=[%s] OwnedTags=[%s]"),
+			*AttackTag.ToString(),
+			bFoundMatchingAbility,
+			*FailureTags.ToStringSimple(),
+			*OwnedTags.ToStringSimple());
 		return EBTNodeResult::Failed;
+	}
+	const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
+	if (AttackTag == Tags.Ability_Boss_Greatsword_GuardRelease)
+	{
+		if (IBossCombatInterface* BossCombat = Cast<IBossCombatInterface>(Pawn))
+		{
+			BossCombat->ConsumeBossGuardRelease();
+		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Run TryActivate %s "), *AttackTag.ToString());
 	return EBTNodeResult::InProgress;

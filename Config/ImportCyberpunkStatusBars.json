@@ -1,0 +1,29 @@
+{
+  "ImportGroups": [
+    {
+      "GroupName": "CyberpunkStatusBars",
+      "Filenames": [
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Mana_Blue.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Health_Red.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Poise_Amber.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Momentum_Green.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_StatusBars_Sheet.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Frame_Mana_Blue.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Frame_Health_Red.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Frame_Poise_Amber.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Frame_Momentum_Green.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Fill_Mana_Blue.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Fill_Health_Red.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Fill_Poise_Amber.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_Fill_Momentum_Green.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_RUltimate_Icon.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_RUltimate_ChargeRing.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_RUltimate_ReadyGlow.png",
+        "E:/ueproject/WGas/Content/Blueprint/UI/Textures/CyberpunkStatusBars/T_UI_RUltimate_CooldownMask.png"
+      ],
+      "DestinationPath": "/Game/Blueprint/UI/Textures/CyberpunkStatusBars",
+      "bReplaceExisting": true,
+      "bSkipReadOnly": false
+    }
+  ]
+}

@@ -46,8 +46,12 @@ private:
 	void OnBossHealthChanged(const FOnAttributeChangeData& Data);
 	void BeginPhaseTransition();
 	void EnterPhase2();
+	void ForceCompletePhaseTransition();
 	void CancelCurrentCombatActions();
 	FActiveGameplayEffectHandle PhaseInvincibleEffectHandle;
+	FTimerHandle PhaseTransitionFailSafeTimer;
+	UPROPERTY(EditDefaultsOnly, Category="Phase", meta=(ClampMin="1.0"))
+	float PhaseTransitionFailSafeSeconds = 6.f;
 	bool bTransitionTriggered = false;
 	bool bPhase2Entered = false;
 

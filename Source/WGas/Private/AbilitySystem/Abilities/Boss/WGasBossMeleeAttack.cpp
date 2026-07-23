@@ -10,10 +10,10 @@
 #include "Animation/AnimMontage.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Character/WGasCharacterBase.h"
-#include "Character/WGasCharacterEnemy.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Interaction/BossCombatInterface.h"
 
 UWGasBossMeleeAttack::UWGasBossMeleeAttack()
 {
@@ -149,15 +149,7 @@ void UWGasBossMeleeAttack::FaceTargetActor()
 		FaceRot = FRotator(0.f, Character->GetActorRotation().Yaw, 0.f);
 	}
 
-	UMotionWarpingComponent* MWC = nullptr;
-	if (const AWGasCharacterEnemy* Enemy = Cast<AWGasCharacterEnemy>(Character))
-	{
-		MWC = Enemy->GetMotionWarpingComponent();
-	}
-	if (!MWC)
-	{
-		MWC = Character->FindComponentByClass<UMotionWarpingComponent>();
-	}
+	UMotionWarpingComponent* MWC = Character->FindComponentByClass<UMotionWarpingComponent>();
 
 	if (MWC)
 	{
@@ -272,7 +264,10 @@ void UWGasBossMeleeAttack::FinishAttack(bool bWasCancelled)
 		return;
 	}
 	bAttackEndHandled = true;
-
+	if (IBossCombatInterface* BossCombat = Cast<IBossCombatInterface>(GetAvatarActorFromActorInfo()))
+	{
+		BossCombat->NotifyBossNormalAttackFinished();
+	}
 	if (AWGasCharacterBase* Character = GetWGasCharacterFromActorInfo())
 	{
 		if (Character->CombatComponent)

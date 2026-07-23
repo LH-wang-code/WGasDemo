@@ -60,9 +60,26 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 		FName("Ability.Boss.Melee.5"), FString("Ability.Boss.Melee.5"));
 	GameplayTags.Ability_Boss_Charge = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Ability.Boss.Charge"), FString("Abilitiy.Boss.Charge"));
+	GameplayTags.Ability_Boss_Greatsword_GuardRelease =UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Greatsword.GuardRelease"),FString("Boss phase 2 guard reaction release"));
+	GameplayTags.Ability_Boss_Greatsword_1= UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Greatsword.1"), FString("Abilitiy.Boss.Greatsword.1"));
+	GameplayTags.Ability_Boss_Greatsword_2= UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Greatsword.2"), FString("Abilitiy.Boss.Greatsword.2"));
+	GameplayTags.Ability_Boss_Greatsword_3= UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Greatsword.3"), FString("Abilitiy.Boss.Greatsword.3"));
+	GameplayTags.Ability_Boss_Greatsword_4= UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Greatsword.4"), FString("Abilitiy.Boss.Greatsword.4"));
+	GameplayTags.Ability_Boss_Greatsword_5= UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Greatsword.5"), FString("Abilitiy.Boss.Greatsword.5"));
+	GameplayTags.Ability_Boss_Greatsword_Guard= UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Greatsword.Guard"), FString("Ability.Boss.Greatsword.Guard"));
+
+	
 	GameplayTags.Ability_Player_Melee_Combo = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilitiy.Player.Melee.Combo"), FString("Abilitiy.Player.Melee.Combo"));
-
+	GameplayTags.Ability_Boss_Parry =UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Ability.Boss.Parry"),FString("Boss parry ability"));
 	//state
 	GameplayTags.State_Attacking_Lighting = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Attacking.Lighting"), FString("State.Attacking.Lighting"));
@@ -103,6 +120,15 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 
 	GameplayTags.State_Dead = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("State.Dead"), FString(" tate.Dead"));
+
+	GameplayTags.State_Boss_Parry_Window =UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Boss.Parry.Window"),FString("Boss can parry player melee damage"));
+
+	GameplayTags.State_Boss_Parry_Success =UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Boss.Parry.Success"),FString("Boss successfully parried the player"));
+
+	GameplayTags.State_Boss_Greatsword_Block =UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("State.Boss.Greatsword.Block"),FString("Boss phase 2 greatsword guard window"));
 	//Event
 	GameplayTags.Event_Boss_PoiseBroken = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Event.Boss.PoiseBroken"), FString("Event.Boss.PoiseBroken"));
@@ -142,4 +168,6 @@ void FWGasGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Mark_MomentumULtimate_Layer_3 = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Mark.MomentumULtimate.Layer.3"), FString("Mark.MomentumULtimate.Layer.3"));
 	
+	GameplayTags.Cooldown_Ability_MomentumUltimate = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Cooldown.Ability.MomentumUltimate"), FString("Cooldown.Ability.MomentumUltimate"));
 }

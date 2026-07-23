@@ -7,7 +7,7 @@
 #include "AbilitySystem/Data/BossAttackInfo.h"
 #include "AbilitySystemComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Character/WGasCharacterEnemy.h"
+#include "Interaction/BossCombatInterface.h"
 #include "WGasGameplayTags.h"
 
 EBTNodeResult::Type UBTT_SelectBossAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -30,21 +30,59 @@ EBTNodeResult::Type UBTT_SelectBossAttack::ExecuteTask(UBehaviorTreeComponent& O
 	}
 
 	AActor* TargetActor = Cast<AActor>(Blackboard->GetValueAsObject(TEXT("TargetActor")));
-	AWGasCharacterEnemy* Enemy = Cast<AWGasCharacterEnemy>(Pawn);
-	if (!TargetActor || !Enemy || !Enemy->AttackSet)
+	IBossCombatInterface* BossCombat = Cast<IBossCombatInterface>(Pawn);
+	const UBossAttackInfo* AttackSet = BossCombat ? BossCombat->GetBossAttackSet() : nullptr;
+	if (!TargetActor || !AttackSet)
 	{
 		return EBTNodeResult::Failed;
 	}
 
-	const TArray<FBossAttackInfomation>& Attacks = Enemy->AttackSet->Attacks;
+	const TArray<FBossAttackInfomation>& Attacks = AttackSet->Attacks;
 	if (Attacks.IsEmpty())
 	{
 		return EBTNodeResult::Failed;
 	}
+	if (BossCombat)
+	{
+		const FWGasGameplayTags& Tags = FWGasGameplayTags::Get();
 
+		if (BossCombat->IsBossGuardReleaseReady()
+			&& Tags.Ability_Boss_Greatsword_GuardRelease.IsValid())
+		{
+			Blackboard->SetValueAsName(
+				TEXT("SelectedAttackTag"),
+				Tags.Ability_Boss_Greatsword_GuardRelease.GetTagName());
+
+			return EBTNodeResult::Succeeded;
+		}
+	}
 	FVector ToTarget = TargetActor->GetActorLocation() - Pawn->GetActorLocation();
 	ToTarget.Z = 0.f;
 	const float Distance = ToTarget.Size();
+	const FWGasGameplayTags& WGasTags = FWGasGameplayTags::Get();
+	// 由 BTService_ReadPlayerParry 写入黑板：选招任务只消费黑板数据。
+	const bool bPlayerAttackStartup = Blackboard->GetValueAsBool(TEXT("bPlayerAttackStartup"));
+	const bool bCanReadParry =bPlayerAttackStartup&& Distance >= 90.f&& Distance <= 260.f&& FMath::FRand() <= 1.f ;
+	if (bCanReadParry)
+	{
+		const bool bIsPhase2 = BossCombat && BossCombat->IsBossPhase2();
+
+		const FGameplayTag GuardAbilityTag = bIsPhase2
+			? WGasTags.Ability_Boss_Greatsword_Guard
+			: WGasTags.Ability_Boss_Parry;
+
+		if (GuardAbilityTag.IsValid())
+		{
+			Blackboard->SetValueAsName(
+				TEXT("SelectedAttackTag"),
+				GuardAbilityTag.GetTagName());
+
+			UE_LOG(LogTemp, Warning, TEXT("Select Guard: Phase=%d Tag=%s"),
+				bIsPhase2, *GuardAbilityTag.ToString());
+			return EBTNodeResult::Succeeded;
+		}
+	}
+
 
 	TArray<int32> ValidAttackIndices;
 	ValidAttackIndices.Reserve(Attacks.Num());
